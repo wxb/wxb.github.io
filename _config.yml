@@ -102,7 +102,11 @@ theme: next-new
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: ''
+  type: git
+  repo: git@github.com:wxb/wxb.github.io.git
+  branch: main
+  message: '日拱一卒'
+
 
 
 
