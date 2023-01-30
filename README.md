@@ -10,7 +10,7 @@
 
 ## 什么是虢国书馆？
 
-这是我的博客仓库，基于hexo框架和next模板。博客主页是：https://wxb.github.io 。欢迎大家拍砖！   
+基于hexo框架和next模板搭建的博客：https://wxb.github.io   
 > 仓库有两个分支:    
 > * main 是博客源码
 > * gh-pages 是博客生成的静态文件
@@ -18,7 +18,7 @@
 ## 我是谁？
 
 * 资深 🐹 go & 🐘 php & 🦀 rust & 🐍 python
-* 常年一线开发者
+* 一线开发者
 
 ## 信念
 
@@ -29,8 +29,3 @@
 **E-mail:** `wxb0328@icoud.com`    
 **GitHub:** `github.com/wxb`     
 
-## 资料
-* [博客园](http://www.cnblogs.com/wxb0328) `已经停止更新`    
-* [个人博客站点](https://wxb.github.io)－基于`hexo 5.4.0`
-* 关于hexo 是个什么东东？可以通过下面的链接去了解：[hexo](https://hexo.io/zh-cn/)     
-* 关于[next]主题：[NexT](http://theme-next.iissnan.com/)   
