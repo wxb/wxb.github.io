@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+<!-- Referrer Policy调整致不蒜子单页面统计出错:https://senorui.top/posts/c33f.html -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wxb.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="函数作为程序语言中非常重要的组成部分，为我们编程提供了一种封装功能的手段，使我们可以编写出高内聚、可复用的程序功能。简单的说函数就是输入指定参数，经过内部处理后 返回计算得出的结果。本篇就主要梳理一下PHP函数的参数: 通过参数列表可以传递信息到函数，即以逗号作为分隔符的表达式列表。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="php梳理-函数[参数]">
+<meta property="og:url" content="http://wxb.github.io/2019/06/27/php%E6%A2%B3%E7%90%86-%E5%87%BD%E6%95%B0-%E5%8F%82%E6%95%B0.html">
+<meta property="og:site_name" content="虢國書館">
+<meta property="og:description" content="函数作为程序语言中非常重要的组成部分，为我们编程提供了一种封装功能的手段，使我们可以编写出高内聚、可复用的程序功能。简单的说函数就是输入指定参数，经过内部处理后 返回计算得出的结果。本篇就主要梳理一下PHP函数的参数: 通过参数列表可以传递信息到函数，即以逗号作为分隔符的表达式列表。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://wxb.github.io/images/php/man/2.png">
+<meta property="article:published_time" content="2019-06-27T02:45:21.000Z">
+<meta property="article:modified_time" content="2023-11-22T02:35:30.003Z">
+<meta property="article:author" content="虢國技酱">
+<meta property="article:tag" content="php">
+<meta property="article:tag" content="函数参数">
+<meta property="article:tag" content="可变数量的参数列表">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://wxb.github.io/images/php/man/2.png">
+
+<link rel="canonical" href="http://wxb.github.io/2019/06/27/php%E6%A2%B3%E7%90%86-%E5%87%BD%E6%95%B0-%E5%8F%82%E6%95%B0.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>php梳理-函数[参数] | 虢國書館</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">虢國書館</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">静心·积累·坚持</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://wxb.github.io/2019/06/27/php%E6%A2%B3%E7%90%86-%E5%87%BD%E6%95%B0-%E5%8F%82%E6%95%B0.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/wangxb.png">
+      <meta itemprop="name" content="虢國技酱">
+      <meta itemprop="description" content="静心·积累·坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="虢國書館">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          php梳理-函数[参数]
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-06-27 10:45:21" itemprop="dateCreated datePublished" datetime="2019-06-27T10:45:21+08:00">2019-06-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-22 10:35:30" itemprop="dateModified" datetime="2023-11-22T10:35:30+08:00">2023-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index"><span itemprop="name">php</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>函数作为程序语言中非常重要的组成部分，为我们编程提供了一种封装功能的手段，使我们可以编写出高内聚、可复用的程序功能。简单的说函数就是输入指定参数，经过内部处理后 返回计算得出的结果。<br>本篇就主要梳理一下PHP函数的参数: 通过参数列表可以传递信息到函数，即以逗号作为分隔符的表达式列表。</p>
+<span id="more"></span>
+
+
+<h2 id="值传参"><a href="#值传参" class="headerlink" title="值传参"></a>值传参</h2><p>默认情况下，函数参数通过值传递：即使在函数内部改变参数的值，它并不会改变函数外部的值;传递到函数的参数进行了值复制。</p>
+<h2 id="引用传参"><a href="#引用传参" class="headerlink" title="引用传参"></a>引用传参</h2><p>引用传参会将调用函数时输入的参数的内存地址复制到函数的形参中，因此函数内部形参的修改会影响到外部入参的变量值,因为它们都指向相同的内存地址。<br>如果想要函数的一个参数总是通过引用传递，可以在函数定义中该参数的前面加上符号 <code>&amp;</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add_some_extra</span>(<span class="params">&amp;<span class="variable">$string</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="variable">$string</span> .= <span class="string">&#x27;and something extra.&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$str</span> = <span class="string">&#x27;This is a string, &#x27;</span>;</span><br><span class="line"><span class="title function_ invoke__">add_some_extra</span>(<span class="variable">$str</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$str</span>;    <span class="comment">// outputs &#x27;This is a string, and something extra.&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="默认参数"><a href="#默认参数" class="headerlink" title="默认参数"></a>默认参数</h2><p>函数的默认参数是在调用函数时未传递入参，函数内部使用参数的默认值。</p>
+<ul>
+<li>默认值必须是常量表达式，不能是诸如变量，类成员，或者函数调用等<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">makecoffee</span>(<span class="params"><span class="variable">$type</span> = <span class="string">&quot;cappuccino&quot;</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;Making a cup of <span class="subst">$type</span>.\n&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">makecoffee</span>();</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">makecoffee</span>(<span class="literal">null</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">makecoffee</span>(<span class="string">&quot;espresso&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">以上例程会输出：</span></span><br><span class="line"><span class="comment">  Making a cup of cappuccino.</span></span><br><span class="line"><span class="comment">  Making a cup of .</span></span><br><span class="line"><span class="comment">  Making a cup of espresso.</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure></li>
+<li>任何默认参数必须放在任何非默认参数的右侧，即有默认值的形参应在函数定义参数列表的靠后位置<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 不正确用法</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">makeyogurt</span>(<span class="params"><span class="variable">$type</span> = <span class="string">&quot;acidophilus&quot;</span>, <span class="variable">$flavour</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;Making a bowl of <span class="subst">$type</span> <span class="subst">$flavour</span>.\n&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">makeyogurt</span>(<span class="string">&quot;raspberry&quot;</span>);   <span class="comment">// won&#x27;t work as expected</span></span><br></pre></td></tr></table></figure></li>
+<li>允许使用使用非标量类型作为默认参数,如数组 array 和特殊类型 NULL 作为默认参数:<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">makecoffee</span>(<span class="params"><span class="variable">$types</span> = <span class="keyword">array</span>(<span class="params"><span class="string">&quot;cappuccino&quot;</span></span>), <span class="variable">$coffeeMaker</span> = <span class="literal">NULL</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="variable">$device</span> = <span class="title function_ invoke__">is_null</span>(<span class="variable">$coffeeMaker</span>) ? <span class="string">&quot;hands&quot;</span> : <span class="variable">$coffeeMaker</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;Making a cup of &quot;</span>.<span class="title function_ invoke__">join</span>(<span class="string">&quot;, &quot;</span>, <span class="variable">$types</span>).<span class="string">&quot; with <span class="subst">$device</span>.\n&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">makecoffee</span>();</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">makecoffee</span>(<span class="keyword">array</span>(<span class="string">&quot;cappuccino&quot;</span>, <span class="string">&quot;lavazza&quot;</span>), <span class="string">&quot;teapot&quot;</span>);</span><br></pre></td></tr></table></figure></li>
+<li>PHP 5 起，传引用的参数也可以有默认值<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add_some_extra</span>(<span class="params">&amp;<span class="variable">$var1</span>=<span class="literal">false</span>, &amp;<span class="variable">$var2</span>=<span class="string">&#x27;&#x27;</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="title function_ invoke__">gettype</span>(<span class="variable">$var1</span>, <span class="variable">$var2</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_ invoke__">add_some_extra</span>()  <span class="comment">// boolean string</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="可变数量的参数列表"><a href="#可变数量的参数列表" class="headerlink" title="可变数量的参数列表"></a>可变数量的参数列表</h2><p>对于自定义函数，PHP支持<strong>可变数量</strong>的参数列表, 即函数的参数数量不定。</p>
+<ul>
+<li>在 PHP 5.5 及更早版本中，使用函数 func_num_args()，func_get_arg()，和 func_get_args() 。<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sum</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="variable">$acc</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="title function_ invoke__">func_get_args</span>() <span class="keyword">as</span> <span class="variable">$n</span>) &#123;</span><br><span class="line">        <span class="variable">$acc</span> += <span class="variable">$n</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$acc</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">sum</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>); <span class="comment">// 10</span></span><br></pre></td></tr></table></figure></li>
+<li>在 PHP 5.6 及以上的版本中，由 <code>...</code> 语法实现<ul>
+<li>使用<code>...</code>访问形参变量: 在PHP 5.6或更高版本中，参数列表可能包括<code>...</code>，表示函数接受可变数量的参数。参数将作为数组传递给给定的变量:<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sum</span>(<span class="params">...<span class="variable">$numbers</span></span>) </span>&#123;</span><br><span class="line">    <span class="variable">$acc</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="variable">$numbers</span> <span class="keyword">as</span> <span class="variable">$n</span>) &#123;</span><br><span class="line">        <span class="variable">$acc</span> += <span class="variable">$n</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$acc</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">sum</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>); <span class="comment">// 10</span></span><br></pre></td></tr></table></figure></li>
+<li>使用<code>...</code>提供入参: 可以用<code>...</code>调用函数将数组或可遍历变量或文字解压缩到参数列表:<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params"><span class="variable">$a</span>, <span class="variable">$b</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$a</span> + <span class="variable">$b</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">add</span>(...[<span class="number">1</span>, <span class="number">2</span>]).<span class="string">&quot;\n&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="variable">$a</span> = [<span class="number">1</span>, <span class="number">2</span>];</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">add</span>(...<span class="variable">$a</span>);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出：</span></span><br><span class="line"><span class="comment">3</span></span><br><span class="line"><span class="comment">3</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure></li>
+<li><code>...</code>形参变量前，也可以指定<strong>类型提示</strong>，如果提供了类型，那么所有的<code>...</code>访问到的参数必须是该类型对象。<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">total_intervals</span>(<span class="params"><span class="variable">$unit</span>, DateInterval ...<span class="variable">$intervals</span></span>) </span>&#123;</span><br><span class="line">    <span class="variable">$time</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="variable">$intervals</span> <span class="keyword">as</span> <span class="variable">$interval</span>) &#123;</span><br><span class="line">        <span class="variable">$time</span> += <span class="variable">$interval</span>-&gt;<span class="variable">$unit</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$time</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$a</span> = <span class="keyword">new</span> <span class="title class_">DateInterval</span>(<span class="string">&#x27;P1D&#x27;</span>);</span><br><span class="line"><span class="variable">$b</span> = <span class="keyword">new</span> <span class="title class_">DateInterval</span>(<span class="string">&#x27;P2D&#x27;</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">total_intervals</span>(<span class="string">&#x27;d&#x27;</span>, <span class="variable">$a</span>, <span class="variable">$b</span>).<span class="string">&#x27; days&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// This will fail, since null isn&#x27;t a DateInterval object.</span></span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">total_intervals</span>(<span class="string">&#x27;d&#x27;</span>, <span class="literal">null</span>);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出：</span></span><br><span class="line"><span class="comment">  3 days</span></span><br><span class="line"><span class="comment">  Catchable fatal error: Argument 2 passed to total_intervals() must be an instance of DateInterval, null given, called in - on line 14 and defined in - on line 2</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<h2 id="类型声明"><a href="#类型声明" class="headerlink" title="类型声明"></a>类型声明</h2><p>类型声明(在PHP 5中，类型声明也被称为类型提示)允许函数在调用时要求参数为特定类型。 </p>
+<ul>
+<li>为了指定一个类型声明，类型应该加到参数名前</li>
+<li>标量类型声明有两种模式:<strong>强制模式 (默认)<strong>和</strong>严格模式</strong>;默认情况下，所有的PHP文件都处于弱类型校验模式(强制模式)。<ul>
+<li>强制模式 (默认) <ul>
+<li>PHP将会强迫错误类型的值转为函数期望的标量类型。 例如，一个函数的一个参数期望是string，但传入的是integer，最终函数得到的将会是一个string类型的值</li>
+<li>一个没有启用严格模式的文件内调用了一个在启用严格模式的文件中定义的函数，那么将会遵循调用者的偏好（弱类型），而这个值将会被转换。</li>
+</ul>
+</li>
+<li>严格模式<ul>
+<li>使用 declare 语句和strict_types 声明来启用严格模式：<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span>(strict_types=<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sum</span>(<span class="params"><span class="keyword">int</span> <span class="variable">$a</span>, <span class="keyword">int</span> <span class="variable">$b</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$a</span> + <span class="variable">$b</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_ invoke__">var_dump</span>(<span class="title function_ invoke__">sum</span>(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"><span class="title function_ invoke__">var_dump</span>(<span class="title function_ invoke__">sum</span>(<span class="number">1.5</span>, <span class="number">2.5</span>));</span><br></pre></td></tr></table></figure></li>
+<li>基于每一个文件开启严格模式, <code>declare</code> 声明指令必须放在文件的顶部，甚至要写在<code>namespace</code>之前</li>
+<li>只有一个与类型声明完全相符的变量才会被接受，否则将会抛出一个TypeError</li>
+<li>唯一的一个例外是可以将integer传给一个期望float的函数。</li>
+<li>启用严格模式同时也会影响<strong>返回值类型声明</strong>.</li>
+<li>一个没有启用严格模式的文件内调用了一个在启用严格模式的文件中定义的函数，那么将会遵循调用者的偏好（弱类型），而这个值将会被转换。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>可以通过将参数的默认值设为NULL来实现允许传递NULL</li>
+<li>如果给出的值类型不对，那么将会产生一个错误:<ul>
+<li>在PHP 5中，这将是一个<strong>可恢复的致命错误</strong></li>
+<li>在PHP 7中将会抛出一个<strong>TypeError</strong>异常</li>
+</ul>
+</li>
+<li>有效的类型<br><img src="/images/php/man/2.png"><br><strong>注意：</strong><ul>
+<li><strong>上面图中的标量类型不支持类型别名, 它们将被当做类名或接口名来处理。例如，使用<code>boolean</code>作为入参或者返回值类型声明时，就会要求入参或者返回值是<code>boolean</code>类或者接口的实例，而不是<code>bool</code></strong></li>
+<li><strong><code>bool</code>、<code>float</code>、<code>int</code>和<code>string</code>这四种标量类型是 PHP7 新增，使用时应注意PHP版本</strong></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/php/" rel="tag"># php</a>
+              <a href="/tags/%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0/" rel="tag"># 函数参数</a>
+              <a href="/tags/%E5%8F%AF%E5%8F%98%E6%95%B0%E9%87%8F%E7%9A%84%E5%8F%82%E6%95%B0%E5%88%97%E8%A1%A8/" rel="tag"># 可变数量的参数列表</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/06/27/php7-x%E6%96%B0%E7%89%B9%E6%80%A7.html" rel="prev" title="php7.x新特性">
+      <i class="fa fa-chevron-left"></i> php7.x新特性
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/06/27/php%E6%A2%B3%E7%90%86-%E5%87%BD%E6%95%B0-%E8%BF%94%E5%9B%9E%E5%80%BC.html" rel="next" title="php梳理-函数[返回值]">
+      php梳理-函数[返回值] <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%80%BC%E4%BC%A0%E5%8F%82"><span class="nav-number">1.</span> <span class="nav-text">值传参</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E4%BC%A0%E5%8F%82"><span class="nav-number">2.</span> <span class="nav-text">引用传参</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E5%8F%82%E6%95%B0"><span class="nav-number">3.</span> <span class="nav-text">默认参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E5%8F%98%E6%95%B0%E9%87%8F%E7%9A%84%E5%8F%82%E6%95%B0%E5%88%97%E8%A1%A8"><span class="nav-number">4.</span> <span class="nav-text">可变数量的参数列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E5%9E%8B%E5%A3%B0%E6%98%8E"><span class="nav-number">5.</span> <span class="nav-text">类型声明</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="虢國技酱"
+      src="/images/wangxb.png">
+  <p class="site-author-name" itemprop="name">虢國技酱</p>
+  <div class="site-description" itemprop="description">静心·积累·坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wxb" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wxb" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wxb0328@icloud.com" title="E-Mail → mailto:wxb0328@icloud.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ramboxbwang" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ramboxbwang" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/wangxb" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;wangxb" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">虢國技酱</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a0ce361efbb68e2c2be6',
+      clientSecret: '272365b7568ffbb484cf975261be83fe79a02061',
+      repo        : 'wxb.github.io',
+      owner       : 'wxb',
+      admin       : ['wxb'],
+      id          : 'f2d6dc22ed4c9de9f33e7dc3c6fef4db',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

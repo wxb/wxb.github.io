@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+<!-- Referrer Policy调整致不蒜子单页面统计出错:https://senorui.top/posts/c33f.html -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wxb.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="即时通讯（Instant Messaging，后简称im）消息的可靠投递。本文转自微信公众号 架构师之路">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微信为什么不丢消息?[转]">
+<meta property="og:url" content="http://wxb.github.io/2016/11/02/%E5%BE%AE%E4%BF%A1%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E4%B8%A2%E6%B6%88%E6%81%AF.html">
+<meta property="og:site_name" content="虢國書館">
+<meta property="og:description" content="即时通讯（Instant Messaging，后简称im）消息的可靠投递。本文转自微信公众号 架构师之路">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://wxb.github.io/images/wechat/6.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/wechat/0.png">
+<meta property="og:image" content="http://wxb.github.io/images/wechat/1.png">
+<meta property="og:image" content="http://wxb.github.io/images/wechat/2.png">
+<meta property="og:image" content="http://wxb.github.io/images/wechat/3.png">
+<meta property="og:image" content="http://wxb.github.io/images/wechat/4.jpg">
+<meta property="article:published_time" content="2016-11-02T03:20:00.000Z">
+<meta property="article:modified_time" content="2023-11-22T02:35:30.007Z">
+<meta property="article:author" content="虢國技酱">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://wxb.github.io/images/wechat/6.jpg">
+
+<link rel="canonical" href="http://wxb.github.io/2016/11/02/%E5%BE%AE%E4%BF%A1%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E4%B8%A2%E6%B6%88%E6%81%AF.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>微信为什么不丢消息?[转] | 虢國書館</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">虢國書館</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">静心·积累·坚持</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://wxb.github.io/2016/11/02/%E5%BE%AE%E4%BF%A1%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E4%B8%A2%E6%B6%88%E6%81%AF.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/wangxb.png">
+      <meta itemprop="name" content="虢國技酱">
+      <meta itemprop="description" content="静心·积累·坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="虢國書館">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          微信为什么不丢消息?[转]
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-02 11:20:00" itemprop="dateCreated datePublished" datetime="2016-11-02T11:20:00+08:00">2016-11-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-22 10:35:30" itemprop="dateModified" datetime="2023-11-22T10:35:30+08:00">2023-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BE%AE%E4%BF%A1/" itemprop="url" rel="index"><span itemprop="name">微信</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>即时通讯（Instant Messaging，后简称im）消息的可靠投递。本文转自微信公众号 <strong>架构师之路</strong></p>
+<p><img src="/images/wechat/6.jpg"></p>
+<span id="more"></span>
+
+<h1 id="一、报文类型"><a href="#一、报文类型" class="headerlink" title="一、报文类型"></a>一、报文类型</h1><p>im的客户端与服务器通过发送报文（也就是网络包）来完成消息的传递，报文分为三种<br><strong>请求报文</strong>（request，后简称为为R）<br><strong>应答报文</strong>（acknowledge，后简称为A）<br><strong>通知报文</strong>（notify，后简称为N），这三种报文的解释如下：<br><img src="/images/wechat/0.png"></p>
+<p>R：客户端主动发送给服务器的报文<br>A：服务器被动应答客户端的报文，一个A对应一个R<br>N：服务器主动发送给客户端的报文</p>
+<h1 id="二、普通消息投递流程"><a href="#二、普通消息投递流程" class="headerlink" title="二、普通消息投递流程"></a>二、普通消息投递流程</h1><p>用户A给用户B发送一个“你好”，流程如下：<br><img src="/images/wechat/1.png"><br>1）client-A向im-server发送一个消息请求包，即msg:R<br>2）im-server在成功处理后，回复client-A一个消息响应包，即msg:A<br>3）如果此时client-B在线，则im-server主动向client-B发送一个消息通知包，即msg:N（当然，如果client-B不在线，则消息会存储离线）</p>
+<h1 id="三、上述消息投递流程出现的问题"><a href="#三、上述消息投递流程出现的问题" class="headerlink" title="三、上述消息投递流程出现的问题"></a>三、上述消息投递流程出现的问题</h1><p>从流程图中容易看到，<strong>发送方client-A收到msg:A后，只能说明im-server成功接收到了消息，并不能说明client-B接收到了消息。</strong> 在若干场景下，可能出现msg:N包丢失，且发送方client-A完全不知道，例如：<br>1）服务器崩溃，msg:N包未发出<br>2）网络抖动，msg:N包被网络设备丢弃<br>3）client-B崩溃，msg:N包未接收<br>结论是悲观的：<strong>接收方client-B是否有收到msg:N，发送方client-A完全不可控，那怎么办呢？</strong></p>
+<h1 id="四、应用层确认-im消息可靠投递的六个报文"><a href="#四、应用层确认-im消息可靠投递的六个报文" class="headerlink" title="四、应用层确认+im消息可靠投递的六个报文"></a>四、应用层确认+im消息可靠投递的六个报文</h1><p>upd是一种不可靠的传输层协议，tcp是一种可靠的传输层协议，tcp是如何做到可靠的？答案是：超时、重传、确认。<br>要想实现应用层的消息可靠投递，必须加入应用层的确认机制，即：要想让发送方client-A确保接收方client-B收到了消息，必须让接收方client-B给一个消息的确认，这个应用层的确认的流程，与消息的发送流程类似：<br><img src="/images/wechat/2.png"><br>4）client-B向im-server发送一个ack请求包，即ack:R<br>5）im-server在成功处理后，回复client-B一个ack响应包，即ack:A<br>6）则im-server主动向client-A发送一个ack通知包，即ack:N<br>至此，<strong>发送“你好”的client-A，在收到了ack:N报文后，才能确认client-B真正接收到了“你好”</strong>。<br>会发现，一条消息的发送，分别包含（上）（下）两个半场，即msg的R&#x2F;A&#x2F;N三个报文，ack的R&#x2F;A&#x2F;N三个报文，<strong>一个应用层即时通讯消息的可靠投递，共涉及6个报文，这就是im系统中消息投递的最核心技术</strong>。</p>
+<h1 id="五、可靠消息投递存在什么问题"><a href="#五、可靠消息投递存在什么问题" class="headerlink" title="五、可靠消息投递存在什么问题"></a>五、可靠消息投递存在什么问题</h1><p>期望六个报文完成消息的可靠投递，但实际情况，msg:N，ack:N这两个报文都可能丢失（原因如第二章所述，可能是服务器奔溃、网络抖动、或者客户端奔溃），<strong>此时client-A都收不到期待的ack:N报文，即client-A不能确认client-B是否收到“你好”</strong>，但这两个报文的丢失对应的业务影响又大有不同：<br>1）msg:N包丢失，业务结果是client-B没有收到消息<br>2）ack:N包丢失，业务结果是client-B收到了消息，只是client-A不知道而已<br>那怎么办呢？</p>
+<h1 id="六、消息的超时与重传"><a href="#六、消息的超时与重传" class="headerlink" title="六、消息的超时与重传"></a>六、消息的超时与重传</h1><p>client-A发出了msg:R，收到了msg:A之后，在一个期待的时间内，如果没有收到ack:N，client-A会尝试将msg:R重发。可能client-A同时发出了很多消息，故client-A需要在本地维护一个 <strong>等待ack队列</strong>，并配合timer超时机制，来记录哪些消息没有收到ack:N，以定时重发。<br><img src="/images/wechat/3.png"><br>一旦收到了ack:N，说明client-B收到了“你好”消息，对应的消息将从“等待ack队列”中移除。</p>
+<h1 id="七、消息的重传存在什么问题"><a href="#七、消息的重传存在什么问题" class="headerlink" title="七、消息的重传存在什么问题"></a>七、消息的重传存在什么问题</h1><p>第五章提到过，msg:N，ack:N都有可能丢失：<br>1）msg:N报文丢失，说明client-B之前压根没有收到“你好”报文，超时与重传机制十分有效<br>2）ack:N报文丢失，说明client-B之前已经收到了“你好”报文（只是client-A不知道而已），<strong>超时与重传机制将导致client-B收到重复的消息</strong>，那怎么办呢？</p>
+<h1 id="八、消息的去重"><a href="#八、消息的去重" class="headerlink" title="八、消息的去重"></a>八、消息的去重</h1><p>解决方法也很简单，<strong>由发送方client-A生成一个消息去重的msgid，保存在“等待ack队列”里，同一条消息使用相同的msgid来重传，供client-B去重</strong>，而不影响用户体验。</p>
+<h1 id="九、其他"><a href="#九、其他" class="headerlink" title="九、其他"></a>九、其他</h1><p>1）上述设计理念，<strong>由客户端重传，可以保证服务端无状态性</strong>（架构设计基本准则）<br>2）如果client-B不在线，im-server <strong>保存了离线消息后，要伪造ack:N发送给client-A</strong></p>
+<h1 id="十、总结"><a href="#十、总结" class="headerlink" title="十、总结"></a>十、总结</h1><p>1）im系统是通过超时、重传、确认、去重的机制来保证消息的可靠投递，不丢不重<br>2）一个“你好”的发送，包含上半场msg:R&#x2F;A&#x2F;N与下半场ack:R&#x2F;A&#x2F;N的6个报文<br>3）im系统难以做到系统层面的不丢不重，只能做到业务层面的不丢不重</p>
+<p>末了，微信的消息是不是这么发送的，偶不太清楚，清楚的同学可以说一说。</p>
+<blockquote>
+<p>看到这里有点小失望，一本正经的学习以为就这就真是微信的设计。原来不是，不过之所以还是继续转载，是因为我觉得虽然这不是微信发送消息的设计，但是相关问题的解决<br>设计和方案是很有想法的。拓展了自己在消息发送这方面的知识面！很有收获，随意转载分享给大家</p>
+</blockquote>
+<h1 id="转载相关信息"><a href="#转载相关信息" class="headerlink" title="转载相关信息"></a>转载相关信息</h1><p>本文转自微信公众号 <strong>架构师之路</strong> ：微信为什么不丢消息?<br>有兴趣的小伙伴可以扫描下面二维码：<br><img src="/images/wechat/4.jpg"></p>
+<blockquote>
+<p>这个公众号上门虽然文章不是很多，但是可以说很有质量和高度。虽然没有实战代码，但是拓展知识面还是很有帮助的</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%BD%AC%E8%BD%BD/" rel="tag"># 转载</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/10/17/Gulp%E8%87%AA%E5%8A%A8%E5%8C%96%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7.html" rel="prev" title="Gulp自动化构建工具">
+      <i class="fa fa-chevron-left"></i> Gulp自动化构建工具
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/11/03/%E5%A5%BD%E5%A5%BD%E7%8E%A9git%E4%B9%8Bgit-config.html" rel="next" title="好好玩git:git-config">
+      好好玩git:git-config <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%8A%A5%E6%96%87%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">一、报文类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%99%AE%E9%80%9A%E6%B6%88%E6%81%AF%E6%8A%95%E9%80%92%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">二、普通消息投递流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E4%B8%8A%E8%BF%B0%E6%B6%88%E6%81%AF%E6%8A%95%E9%80%92%E6%B5%81%E7%A8%8B%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">三、上述消息投递流程出现的问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E5%BA%94%E7%94%A8%E5%B1%82%E7%A1%AE%E8%AE%A4-im%E6%B6%88%E6%81%AF%E5%8F%AF%E9%9D%A0%E6%8A%95%E9%80%92%E7%9A%84%E5%85%AD%E4%B8%AA%E6%8A%A5%E6%96%87"><span class="nav-number">4.</span> <span class="nav-text">四、应用层确认+im消息可靠投递的六个报文</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%8F%AF%E9%9D%A0%E6%B6%88%E6%81%AF%E6%8A%95%E9%80%92%E5%AD%98%E5%9C%A8%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="nav-number">5.</span> <span class="nav-text">五、可靠消息投递存在什么问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E6%B6%88%E6%81%AF%E7%9A%84%E8%B6%85%E6%97%B6%E4%B8%8E%E9%87%8D%E4%BC%A0"><span class="nav-number">6.</span> <span class="nav-text">六、消息的超时与重传</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E6%B6%88%E6%81%AF%E7%9A%84%E9%87%8D%E4%BC%A0%E5%AD%98%E5%9C%A8%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="nav-number">7.</span> <span class="nav-text">七、消息的重传存在什么问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E6%B6%88%E6%81%AF%E7%9A%84%E5%8E%BB%E9%87%8D"><span class="nav-number">8.</span> <span class="nav-text">八、消息的去重</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B9%9D%E3%80%81%E5%85%B6%E4%BB%96"><span class="nav-number">9.</span> <span class="nav-text">九、其他</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8D%81%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-number">10.</span> <span class="nav-text">十、总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BD%AC%E8%BD%BD%E7%9B%B8%E5%85%B3%E4%BF%A1%E6%81%AF"><span class="nav-number">11.</span> <span class="nav-text">转载相关信息</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="虢國技酱"
+      src="/images/wangxb.png">
+  <p class="site-author-name" itemprop="name">虢國技酱</p>
+  <div class="site-description" itemprop="description">静心·积累·坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wxb" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wxb" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wxb0328@icloud.com" title="E-Mail → mailto:wxb0328@icloud.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ramboxbwang" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ramboxbwang" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/wangxb" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;wangxb" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">虢國技酱</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a0ce361efbb68e2c2be6',
+      clientSecret: '272365b7568ffbb484cf975261be83fe79a02061',
+      repo        : 'wxb.github.io',
+      owner       : 'wxb',
+      admin       : ['wxb'],
+      id          : '23fad8893f5c729af72b3d075fece680',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

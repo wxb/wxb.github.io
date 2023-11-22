@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+<!-- Referrer Policy调整致不蒜子单页面统计出错:https://senorui.top/posts/c33f.html -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wxb.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="问题由来前几天在做项目的时候，发现一般做登录的时候只是一个非常简单的form表单，但是这样肯定是不安全的！所以想去看看其他比较流行的网站是怎么实现的。说到安全，我第一个想到的就是去看支付宝，毕竟人家那么大的系统并且管理的是money啊! 结果，支付宝的登录确实复杂，chrome的F12竟然找不到。算了，看看我大博客园吧！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="博客园加密登录--jsencrypt">
+<meta property="og:url" content="http://wxb.github.io/2017/02/08/%E5%8D%9A%E5%AE%A2%E5%9B%AD%E5%8A%A0%E5%AF%86%E7%99%BB%E5%BD%95-jsencrypt.html">
+<meta property="og:site_name" content="虢國書館">
+<meta property="og:description" content="问题由来前几天在做项目的时候，发现一般做登录的时候只是一个非常简单的form表单，但是这样肯定是不安全的！所以想去看看其他比较流行的网站是怎么实现的。说到安全，我第一个想到的就是去看支付宝，毕竟人家那么大的系统并且管理的是money啊! 结果，支付宝的登录确实复杂，chrome的F12竟然找不到。算了，看看我大博客园吧！">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://wxb.github.io/images/cnblogs/01.png">
+<meta property="article:published_time" content="2017-02-08T03:23:40.000Z">
+<meta property="article:modified_time" content="2023-11-22T02:35:30.003Z">
+<meta property="article:author" content="虢國技酱">
+<meta property="article:tag" content="博客搬家">
+<meta property="article:tag" content="加密传输">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://wxb.github.io/images/cnblogs/01.png">
+
+<link rel="canonical" href="http://wxb.github.io/2017/02/08/%E5%8D%9A%E5%AE%A2%E5%9B%AD%E5%8A%A0%E5%AF%86%E7%99%BB%E5%BD%95-jsencrypt.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>博客园加密登录--jsencrypt | 虢國書館</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">虢國書館</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">静心·积累·坚持</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://wxb.github.io/2017/02/08/%E5%8D%9A%E5%AE%A2%E5%9B%AD%E5%8A%A0%E5%AF%86%E7%99%BB%E5%BD%95-jsencrypt.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/wangxb.png">
+      <meta itemprop="name" content="虢國技酱">
+      <meta itemprop="description" content="静心·积累·坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="虢國書館">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          博客园加密登录--jsencrypt
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-02-08 11:23:40" itemprop="dateCreated datePublished" datetime="2017-02-08T11:23:40+08:00">2017-02-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-22 10:35:30" itemprop="dateModified" datetime="2023-11-22T10:35:30+08:00">2023-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%8A%A0%E5%AF%86/" itemprop="url" rel="index"><span itemprop="name">加密</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="问题由来"><a href="#问题由来" class="headerlink" title="问题由来"></a>问题由来</h1><p>前几天在做项目的时候，发现一般做登录的时候只是一个非常简单的<code>form</code>表单，但是这样肯定是不安全的！所以想去看看其他比较流行的网站是怎么实现的。说到安全，我第一个想到的就是去看支付宝，毕竟人家那么大的系统并且管理的是money啊! 结果，支付宝的登录确实复杂，chrome的F12竟然找不到。算了，看看我大博客园吧！</p>
+<span id="more"></span>
+
+<p>下面就是从博客园登录页面copy下来的js登录代码片段<br>博客园登录时采用的ajax发信http登录请求，就是采用jsencypt加密，以保护用户登录账号安全，一下是js片段代码</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> return_url = <span class="string">&#x27;http://home.cnblogs.com/u/wxb0328/&#x27;</span>;</span><br><span class="line"><span class="keyword">var</span> ajax_url = <span class="string">&#x27;/user&#x27;</span> + <span class="string">&#x27;/signin&#x27;</span>;</span><br><span class="line"><span class="keyword">var</span> enable_captcha = <span class="literal">false</span>;</span><br><span class="line"><span class="keyword">var</span> is_in_progress = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">setFocus</span>(<span class="params"></span>) &#123;</span><br><span class="line">   <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;input1&#x27;</span>).<span class="title function_">focus</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">check_enter</span>(<span class="params">event</span>) &#123;</span><br><span class="line">   <span class="keyword">if</span> (event.<span class="property">keyCode</span> == <span class="number">13</span>) &#123;</span><br><span class="line">       <span class="keyword">var</span> target = event.<span class="property">target</span> || event.<span class="property">srcElement</span>;</span><br><span class="line">       <span class="keyword">if</span> (target.<span class="property">id</span> == <span class="string">&quot;input1&quot;</span>) &#123;</span><br><span class="line">           <span class="keyword">if</span> (<span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;input1&#x27;</span>).<span class="property">value</span> == <span class="string">&#x27;&#x27;</span>) &#123;</span><br><span class="line">               $(<span class="string">&#x27;#tip_input1&#x27;</span>).<span class="title function_">html</span>(<span class="string">&quot;请输入登录用户名&quot;</span>);</span><br><span class="line">               <span class="keyword">return</span>;</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;input2&#x27;</span>).<span class="property">value</span> == <span class="string">&#x27;&#x27;</span>) &#123;</span><br><span class="line">               <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&quot;input2&quot;</span>).<span class="title function_">focus</span>();</span><br><span class="line">               <span class="keyword">return</span>;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">if</span> (target.<span class="property">id</span> == <span class="string">&quot;input2&quot;</span>) &#123;</span><br><span class="line">           <span class="keyword">if</span> (<span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;input2&#x27;</span>).<span class="property">value</span> == <span class="string">&#x27;&#x27;</span>) &#123;</span><br><span class="line">               $(<span class="string">&#x27;#tip_input2&#x27;</span>).<span class="title function_">html</span>(<span class="string">&quot;请输入密码&quot;</span>);</span><br><span class="line">               <span class="keyword">return</span>;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="title function_">signin_go</span>();</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">signin_go</span>(<span class="params"></span>) &#123;</span><br><span class="line">   <span class="keyword">if</span>(is_in_progress)&#123;</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   $(<span class="string">&#x27;#tip_input1&#x27;</span>).<span class="title function_">html</span>(<span class="string">&#x27;&#x27;</span>);</span><br><span class="line">   $(<span class="string">&#x27;#tip_input2&#x27;</span>).<span class="title function_">html</span>(<span class="string">&#x27;&#x27;</span>);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">var</span> input1 = $.<span class="title function_">trim</span>($(<span class="string">&#x27;#input1&#x27;</span>).<span class="title function_">val</span>());</span><br><span class="line">   <span class="keyword">if</span> (!input1) &#123;</span><br><span class="line">       $(<span class="string">&#x27;#tip_input1&#x27;</span>).<span class="title function_">html</span>(<span class="string">&quot;请输入登录用户名&quot;</span>);</span><br><span class="line">       $(<span class="string">&#x27;#input1&#x27;</span>).<span class="title function_">focus</span>();</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">var</span> input2 = $.<span class="title function_">trim</span>($(<span class="string">&#x27;#input2&#x27;</span>).<span class="title function_">val</span>());</span><br><span class="line">   <span class="keyword">if</span> (!input2) &#123;</span><br><span class="line">       $(<span class="string">&#x27;#tip_input2&#x27;</span>).<span class="title function_">html</span>(<span class="string">&quot;请输入密码&quot;</span>);</span><br><span class="line">       $(<span class="string">&#x27;#input2&#x27;</span>).<span class="title function_">focus</span>();</span><br><span class="line">       <span class="keyword">return</span>;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span>(enable_captcha)</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">var</span> captchaCode = $.<span class="title function_">trim</span>($(<span class="string">&#x27;#captcha_code_input&#x27;</span>).<span class="title function_">val</span>());</span><br><span class="line">       <span class="keyword">if</span> (!captchaCode)</span><br><span class="line">       &#123;</span><br><span class="line">           $(<span class="string">&#x27;#tip_captcha_code_input&#x27;</span>).<span class="title function_">html</span>(<span class="string">&quot;请输入验证码&quot;</span>);</span><br><span class="line">           $(<span class="string">&#x27;#captcha_code_input&#x27;</span>).<span class="title function_">focus</span>();</span><br><span class="line">           <span class="keyword">return</span>;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   $(<span class="string">&#x27;#tip_btn&#x27;</span>).<span class="title function_">html</span>(<span class="string">&#x27;提交中...&#x27;</span>);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">var</span> encrypt = <span class="keyword">new</span> <span class="title class_">JSEncrypt</span>();</span><br><span class="line">   encrypt.<span class="title function_">setPublicKey</span>(<span class="string">&#x27;MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCp0wHYbg/NOPO3nzMD3dndwS0MccuMeXCHgVlGOoYyFwLdS24Im2e7YyhB0wrUsyYf0/nhzCzBK8ZC9eCWqd0aHbdgOQT6CuFQBMjbyGYvlVYU2ZP7kG9Ft6YV6oc9ambuO7nPZh+bvXH0zDKfi02prknrScAKC0XhadTHT3Al0QIDAQAB&#x27;</span>);</span><br><span class="line">   <span class="keyword">var</span> encrypted_input1 = encrypt.<span class="title function_">encrypt</span>($(<span class="string">&#x27;#input1&#x27;</span>).<span class="title function_">val</span>());</span><br><span class="line">   <span class="keyword">var</span> encrypted_input2 = encrypt.<span class="title function_">encrypt</span>($(<span class="string">&#x27;#input2&#x27;</span>).<span class="title function_">val</span>());</span><br><span class="line">   <span class="keyword">var</span> ajax_data = &#123;</span><br><span class="line">       <span class="attr">input1</span>: encrypted_input1,</span><br><span class="line">       <span class="attr">input2</span>: encrypted_input2,</span><br><span class="line">       <span class="attr">remember</span>: $(<span class="string">&#x27;#remember_me&#x27;</span>).<span class="title function_">prop</span>(<span class="string">&#x27;checked&#x27;</span>)</span><br><span class="line">   &#125;;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span>(enable_captcha)&#123;</span><br><span class="line">       <span class="keyword">var</span> captchaObj = $(<span class="string">&quot;#captcha_code_input&quot;</span>).<span class="title function_">get</span>(<span class="number">0</span>).<span class="property">Captcha</span>;</span><br><span class="line">       ajax_data.<span class="property">captchaId</span> = captchaObj.<span class="property">Id</span>;</span><br><span class="line">       ajax_data.<span class="property">captchaInstanceId</span> = captchaObj.<span class="property">InstanceId</span>;</span><br><span class="line">       ajax_data.<span class="property">captchaUserInput</span> = $(<span class="string">&quot;#captcha_code_input&quot;</span>).<span class="title function_">val</span>();</span><br><span class="line">   &#125;</span><br><span class="line">   is_in_progress = <span class="literal">true</span>;</span><br><span class="line">   $.<span class="title function_">ajax</span>(&#123;</span><br><span class="line">       <span class="attr">url</span>: ajax_url,</span><br><span class="line">       <span class="attr">type</span>: <span class="string">&#x27;post&#x27;</span>,</span><br><span class="line">       <span class="attr">data</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(ajax_data),</span><br><span class="line">       <span class="attr">contentType</span>: <span class="string">&#x27;application/json; charset=utf-8&#x27;</span>,</span><br><span class="line">       <span class="attr">dataType</span>: <span class="string">&#x27;json&#x27;</span>,</span><br><span class="line">       <span class="attr">headers</span>: &#123;</span><br><span class="line">           <span class="string">&#x27;VerificationToken&#x27;</span>: <span class="string">&#x27;v8o6Zbt1bkghAprMyn-NuKazyejPBAjz21CtWG81iKijaJ5u4u37q22GSdkbB9aqIc9deUoBETwjJxGFh0jLPZTSnXc1:EnF2TIFu9G2Kd0NgQuSFsXzcWtXcEj7AdxylV6Rlt7k5rcmZOu3j9bcoPO1kiBKGjg1V0WFB9dj8rWXIW34di1ONV6c1&#x27;</span></span><br><span class="line">       &#125;,</span><br><span class="line">       <span class="attr">success</span>: <span class="keyword">function</span> (<span class="params">data</span>) &#123;                    </span><br><span class="line">           <span class="keyword">if</span> (data.<span class="property">success</span>) &#123;</span><br><span class="line">               $(<span class="string">&#x27;#tip_btn&#x27;</span>).<span class="title function_">html</span>(<span class="string">&#x27;登录成功，正在重定向...&#x27;</span>);</span><br><span class="line">               location.<span class="property">href</span> = return_url;</span><br><span class="line">           &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">               $(<span class="string">&#x27;#tip_btn&#x27;</span>).<span class="title function_">html</span>(data.<span class="property">message</span> + <span class="string">&quot;&lt;br/&gt;&lt;br/&gt;联系 contact@cnblogs.com&quot;</span>);</span><br><span class="line">               is_in_progress = <span class="literal">false</span>;</span><br><span class="line">               <span class="keyword">if</span>(enable_captcha)</span><br><span class="line">               &#123;</span><br><span class="line">                   captchaObj.<span class="title class_">ReloadImage</span>();</span><br><span class="line">               &#125;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;,</span><br><span class="line">       <span class="attr">error</span>: <span class="keyword">function</span> (<span class="params">xhr</span>) &#123;</span><br><span class="line">           is_in_progress = <span class="literal">false</span>;</span><br><span class="line">           $(<span class="string">&#x27;#tip_btn&#x27;</span>).<span class="title function_">html</span>(<span class="string">&#x27;抱歉！出错！联系 contact@cnblogs.com&#x27;</span>);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">   $(<span class="string">&#x27;#signin&#x27;</span>).<span class="title function_">bind</span>(<span class="string">&#x27;click&#x27;</span>, <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">       <span class="title function_">signin_go</span>();</span><br><span class="line">   &#125;).<span class="title function_">val</span>(<span class="string">&#x27;登 录&#x27;</span>);</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>可以看到博客园使用了一个js加密类库：jsencrypt，下面就来了解一下这个类库！</p>
+<h1 id="js的一个使用OpenSSL加密，解密，秘钥生成类库"><a href="#js的一个使用OpenSSL加密，解密，秘钥生成类库" class="headerlink" title="js的一个使用OpenSSL加密，解密，秘钥生成类库"></a>js的一个使用OpenSSL加密，解密，秘钥生成类库</h1><p>A Javascript library to perform OpenSSL RSA Encryption, Decryption, and Key Generation<br>这里不对jsencrypt这个js类库做详细的介绍了，大家有兴趣可以去它的github主页学习，其实这个类库还是相对比较简单的，只要稍微看看就应该可以掌握。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/travist/jsencrypt">github主页</a><br><a target="_blank" rel="noopener" href="http://travistidwell.com/jsencrypt/">官方网站</a>   </p>
+<h1 id="PHP关于OpenSSL相关资料"><a href="#PHP关于OpenSSL相关资料" class="headerlink" title="PHP关于OpenSSL相关资料"></a>PHP关于OpenSSL相关资料</h1><p><a target="_blank" rel="noopener" href="http://php.net/manual/zh/book.openssl.php">PHP手册OpenSSL</a>  </p>
+<h1 id="关于后台PHP解密"><a href="#关于后台PHP解密" class="headerlink" title="关于后台PHP解密"></a>关于后台PHP解密</h1><ol>
+<li>学习PHP手册：<a target="_blank" rel="noopener" href="http://php.net/manual/zh/book.openssl.php">PHP手册OpenSSL</a>  </li>
+<li>参考博客：<a target="_blank" rel="noopener" href="http://blog.csdn.net/clh604/article/details/20224735">php rsa加密解密实例</a></li>
+</ol>
+<h1 id="下面贴出我自己写的测试demo"><a href="#下面贴出我自己写的测试demo" class="headerlink" title="下面贴出我自己写的测试demo"></a>下面贴出我自己写的测试demo</h1><p><strong>test.html</strong></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!doctype <span class="keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>JavaScript RSA Encryption<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;http://code.jquery.com/jquery-1.8.3.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;./jsencrypt.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"><span class="comment">// 使用jsencrypt类库加密js方法，</span></span></span><br><span class="line"><span class="language-javascript"><span class="keyword">function</span> <span class="title function_">encryptRequest</span>(<span class="params">reqUrl, data, publicKey</span>)&#123;</span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> encrypt = <span class="keyword">new</span> <span class="title class_">JSEncrypt</span>();</span></span><br><span class="line"><span class="language-javascript">    encrypt.<span class="title function_">setPublicKey</span>(publicKey);</span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// ajax请求发送的数据对象</span></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> sendData = <span class="keyword">new</span> <span class="title class_">Object</span>();</span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// 将data数组赋给ajax对象</span></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">for</span>(<span class="keyword">var</span> key <span class="keyword">in</span> data)&#123;</span></span><br><span class="line"><span class="language-javascript">        sendData[key] = encrypt.<span class="title function_">encrypt</span>(data[key]);</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">      $.<span class="title function_">ajax</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">url</span>: reqUrl,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">type</span>: <span class="string">&#x27;post&#x27;</span>,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">data</span>: sendData,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">dataType</span>: <span class="string">&#x27;json&#x27;</span>,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">success</span>: <span class="keyword">function</span> (<span class="params">data</span>) &#123;                    </span></span><br><span class="line"><span class="language-javascript">                <span class="variable language_">console</span>.<span class="title function_">info</span>(data);</span></span><br><span class="line"><span class="language-javascript">            &#125;,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">error</span>: <span class="keyword">function</span> (<span class="params">xhr</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;出错了&#x27;</span>);</span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;);</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">&#125;</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">      <span class="comment">// Call this code when the page is done loading.</span></span></span><br><span class="line"><span class="language-javascript">      $(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">        $(<span class="string">&#x27;#testme&#x27;</span>).<span class="title function_">click</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">            <span class="keyword">var</span> data = [];</span></span><br><span class="line"><span class="language-javascript">            data[<span class="string">&#x27;username&#x27;</span>]= $(<span class="string">&#x27;#username&#x27;</span>).<span class="title function_">val</span>();</span></span><br><span class="line"><span class="language-javascript">            data[<span class="string">&#x27;passwd&#x27;</span>]= $(<span class="string">&#x27;#passwd&#x27;</span>).<span class="title function_">val</span>();</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">            <span class="keyword">var</span> pkey = $(<span class="string">&#x27;#pubkey&#x27;</span>).<span class="title function_">val</span>();</span></span><br><span class="line"><span class="language-javascript">            <span class="title function_">encryptRequest</span>(<span class="string">&#x27;./test.php&#x27;</span>, data, pkey);</span></span><br><span class="line"><span class="language-javascript">        &#125;);</span></span><br><span class="line"><span class="language-javascript">      &#125;);</span></span><br><span class="line"><span class="language-javascript">    </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">&quot;pubkey&quot;</span>&gt;</span>Public Key<span class="tag">&lt;/<span class="name">label</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">textarea</span> <span class="attr">id</span>=<span class="string">&quot;pubkey&quot;</span> <span class="attr">rows</span>=<span class="string">&quot;15&quot;</span> <span class="attr">cols</span>=<span class="string">&quot;65&quot;</span>&gt;</span>-----BEGIN PUBLIC KEY-----</span><br><span class="line">MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCBWNoG5LJ3u44Gs8PWs1MaNUQQ</span><br><span class="line">+mOmh+9zWdzSt3ORbmfCDvU+ssW/6QTTgXvWWx7+Wzq/a4fCCQp72zSqXeVhWkTV</span><br><span class="line">ct9Hyp/iMo5K6qOEK76z9z+tP/u99X6qazeXGVMWKkPiyZT4mKAGd/U8Mph9Z1Z5</span><br><span class="line">kOluA7g7heq8PPlE9wIDAQAB</span><br><span class="line">-----END PUBLIC KEY-----<span class="tag">&lt;/<span class="name">textarea</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">&quot;input&quot;</span>&gt;</span>Text to encrypt:<span class="tag">&lt;/<span class="name">label</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>/&gt;</span></span><br><span class="line">    name:<span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">&quot;username&quot;</span> <span class="attr">name</span>=<span class="string">&quot;username&quot;</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">input</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>/&gt;</span></span><br><span class="line">    password:<span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">&quot;passwd&quot;</span> <span class="attr">name</span>=<span class="string">&quot;passwd&quot;</span> <span class="attr">type</span>=<span class="string">&quot;password&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">input</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">&quot;testme&quot;</span> <span class="attr">type</span>=<span class="string">&quot;button&quot;</span> <span class="attr">value</span>=<span class="string">&quot;submit&quot;</span> /&gt;</span><span class="tag">&lt;<span class="name">br</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>test.php</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 接收客户端发送过来的经过加密的登录信息</span></span><br><span class="line"><span class="variable">$input</span> = <span class="variable">$_POST</span>;</span><br><span class="line"><span class="comment">// 私钥是放在服务器端的，用以验证和解密客户端经过公钥加密后的信息</span></span><br><span class="line"><span class="variable">$private_key</span> = <span class="string">&#x27;-----BEGIN RSA PRIVATE KEY-----</span></span><br><span class="line"><span class="string">MIICXAIBAAKBgQCBWNoG5LJ3u44Gs8PWs1MaNUQQ+mOmh+9zWdzSt3ORbmfCDvU+</span></span><br><span class="line"><span class="string">ssW/6QTTgXvWWx7+Wzq/a4fCCQp72zSqXeVhWkTVct9Hyp/iMo5K6qOEK76z9z+t</span></span><br><span class="line"><span class="string">P/u99X6qazeXGVMWKkPiyZT4mKAGd/U8Mph9Z1Z5kOluA7g7heq8PPlE9wIDAQAB</span></span><br><span class="line"><span class="string">AoGABPQwNX9gznEieWM9JuXrUt+jYbsVQfWG2DYi3Pclt/YwhyAniGU0aas1Ahy9</span></span><br><span class="line"><span class="string">b3JB95/q2hX2Nxo9iozUsYmzFT99dm2HBsHDnpnUgpyDtGo9sXlhLktyey53UKRx</span></span><br><span class="line"><span class="string">QJkW5dWWUQfssNrCe08N3vtLiDIy04lRQ8F0eJ/iklzk1HECQQC22pOz7V2K5/50</span></span><br><span class="line"><span class="string">w9LA9UBSl7wWhTTY5G1gsBEm5tNmbM/ZqCJ1FXB4uuDgz0o0N0x8T8JkkPrRWH5q</span></span><br><span class="line"><span class="string">GIHFRswVAkEAtRbV8PoLnyT73hxtCw0F17aaI8W5AGhvsbjdA6nMo6byBR5xKN+7</span></span><br><span class="line"><span class="string">lalfXYEfXPnStHVNSnQVFjN3T06iJV6z2wJBAKj51rLYcLBT8XbQG+vK+FUa+WrK</span></span><br><span class="line"><span class="string">UGr6tQU7z63mc4dcmLtoP+d5F4XKFNRLWyRj0d+zCU5MGCzrnW7IFOxMn30CQEtv</span></span><br><span class="line"><span class="string">4N3K/C5mtLmZM9+npChxfBKs2l2OJAFwFjnhcUs3T5jMTq2NTlKRRRXppUwREjJ0</span></span><br><span class="line"><span class="string">ryb15pbiB7C0/Bz/L4MCQC1AOKKjnqQEpINatjZLkyay0bXBih9GXovz3T1eAxaS</span></span><br><span class="line"><span class="string">QOEzIC+hGjX+2x1z5jUwwKCgjVUaZdrx470SMJM2Js8=</span></span><br><span class="line"><span class="string">-----END RSA PRIVATE KEY-----&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 公钥一般存放在登录页面中的一个隐藏域中，但是请注意：公钥和私钥一定要配对，且必须保证私钥的安全</span></span><br><span class="line"><span class="variable">$public_key</span> = <span class="string">&#x27;-----BEGIN PUBLIC KEY-----</span></span><br><span class="line"><span class="string">MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCBWNoG5LJ3u44Gs8PWs1MaNUQQ</span></span><br><span class="line"><span class="string">+mOmh+9zWdzSt3ORbmfCDvU+ssW/6QTTgXvWWx7+Wzq/a4fCCQp72zSqXeVhWkTV</span></span><br><span class="line"><span class="string">ct9Hyp/iMo5K6qOEK76z9z+tP/u99X6qazeXGVMWKkPiyZT4mKAGd/U8Mph9Z1Z5</span></span><br><span class="line"><span class="string">kOluA7g7heq8PPlE9wIDAQAB</span></span><br><span class="line"><span class="string">-----END PUBLIC KEY-----&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 使用PHP OpenSSL时，最好先看看手册，了解如何开启OpenSSL 和 其中的一些方法的使用</span></span><br><span class="line"><span class="comment"> *  具体如何使用这里不做赘述，大家去看看PHP手册，什么都就解决了</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="variable">$pi_key</span> =  <span class="title function_ invoke__">openssl_pkey_get_private</span>(<span class="variable">$private_key</span>);<span class="comment">//这个函数可用来判断私钥是否是可用的，可用返回资源id Resource id  </span></span><br><span class="line"><span class="variable">$pu_key</span> = <span class="title function_ invoke__">openssl_pkey_get_public</span>(<span class="variable">$public_key</span>);<span class="comment">//这个函数可用来判断公钥是否是可用的  </span></span><br><span class="line"></span><br><span class="line"><span class="variable">$decrypted</span> = <span class="string">&quot;&quot;</span>;  </span><br><span class="line"><span class="title function_ invoke__">openssl_private_decrypt</span>(<span class="title function_ invoke__">base64_decode</span>(<span class="variable">$input</span>[<span class="string">&#x27;username&#x27;</span>]),<span class="variable">$decrypted</span>,<span class="variable">$pi_key</span>);<span class="comment">//私钥解密  </span></span><br><span class="line"><span class="comment">// 这里的这个 $decrypted就是解密客户端发送过来的用户名，至于后续连接数据库验证登录信息的代码，这里也就省略了</span></span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">json_encode</span>(<span class="variable">$decrypted</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>效果</strong><br><img src="/images/cnblogs/01.png"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>使用OpenSSL的方式加密可以达到比较安全的级别，在平时项目中非常有用！在以后工作中可以多多学习、使用、积累经验</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8D%9A%E5%AE%A2%E6%90%AC%E5%AE%B6/" rel="tag"># 博客搬家</a>
+              <a href="/tags/%E5%8A%A0%E5%AF%86%E4%BC%A0%E8%BE%93/" rel="tag"># 加密传输</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/01/03/LNMP%E4%B8%80%E9%94%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83.html" rel="prev" title="LNMP一键开发环境">
+      <i class="fa fa-chevron-left"></i> LNMP一键开发环境
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/03/03/%E5%85%B3%E4%BA%8Ejs%E6%A8%A1%E5%9D%97%E5%8C%96%E7%9A%84%E4%B8%89%E4%B8%AA%E8%A7%84%E8%8C%83.html" rel="next" title="关于js模块化的三个规范">
+      关于js模块化的三个规范 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E7%94%B1%E6%9D%A5"><span class="nav-number">1.</span> <span class="nav-text">问题由来</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#js%E7%9A%84%E4%B8%80%E4%B8%AA%E4%BD%BF%E7%94%A8OpenSSL%E5%8A%A0%E5%AF%86%EF%BC%8C%E8%A7%A3%E5%AF%86%EF%BC%8C%E7%A7%98%E9%92%A5%E7%94%9F%E6%88%90%E7%B1%BB%E5%BA%93"><span class="nav-number">2.</span> <span class="nav-text">js的一个使用OpenSSL加密，解密，秘钥生成类库</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PHP%E5%85%B3%E4%BA%8EOpenSSL%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99"><span class="nav-number">3.</span> <span class="nav-text">PHP关于OpenSSL相关资料</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E5%90%8E%E5%8F%B0PHP%E8%A7%A3%E5%AF%86"><span class="nav-number">4.</span> <span class="nav-text">关于后台PHP解密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%8B%E9%9D%A2%E8%B4%B4%E5%87%BA%E6%88%91%E8%87%AA%E5%B7%B1%E5%86%99%E7%9A%84%E6%B5%8B%E8%AF%95demo"><span class="nav-number">5.</span> <span class="nav-text">下面贴出我自己写的测试demo</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="虢國技酱"
+      src="/images/wangxb.png">
+  <p class="site-author-name" itemprop="name">虢國技酱</p>
+  <div class="site-description" itemprop="description">静心·积累·坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wxb" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wxb" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wxb0328@icloud.com" title="E-Mail → mailto:wxb0328@icloud.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ramboxbwang" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ramboxbwang" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/wangxb" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;wangxb" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">虢國技酱</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a0ce361efbb68e2c2be6',
+      clientSecret: '272365b7568ffbb484cf975261be83fe79a02061',
+      repo        : 'wxb.github.io',
+      owner       : 'wxb',
+      admin       : ['wxb'],
+      id          : '5b9659a947df97e864885b1263848232',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

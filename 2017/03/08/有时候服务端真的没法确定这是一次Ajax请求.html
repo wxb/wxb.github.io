@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+<!-- Referrer Policy调整致不蒜子单页面统计出错:https://senorui.top/posts/c33f.html -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wxb.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="对于web开发来说，ajax请求是不是感觉非常熟悉，是不是觉得对http来说应该分个：普通请求和ajax请求呢？是不是认为后端程序可以根据X-Request-With来判断请求是不是ajax？事实上，确实后端确实是这样做的，百度一下基本都是这答案；对于熟悉thinkphp的php开发者也应该知道tp的isAjax(5.0)或IS_AJAX(3.2)判断方法本质上也是$_SERVER[&#39;H">
+<meta property="og:type" content="article">
+<meta property="og:title" content="有时候服务端真的没法确定这是一次Ajax请求">
+<meta property="og:url" content="http://wxb.github.io/2017/03/08/%E6%9C%89%E6%97%B6%E5%80%99%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9C%9F%E7%9A%84%E6%B2%A1%E6%B3%95%E7%A1%AE%E5%AE%9A%E8%BF%99%E6%98%AF%E4%B8%80%E6%AC%A1Ajax%E8%AF%B7%E6%B1%82.html">
+<meta property="og:site_name" content="虢國書館">
+<meta property="og:description" content="对于web开发来说，ajax请求是不是感觉非常熟悉，是不是觉得对http来说应该分个：普通请求和ajax请求呢？是不是认为后端程序可以根据X-Request-With来判断请求是不是ajax？事实上，确实后端确实是这样做的，百度一下基本都是这答案；对于熟悉thinkphp的php开发者也应该知道tp的isAjax(5.0)或IS_AJAX(3.2)判断方法本质上也是$_SERVER[&#39;H">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://wxb.github.io/images/ajax/ajax.png">
+<meta property="og:image" content="http://wxb.github.io/images/ajax/webxhr.png">
+<meta property="og:image" content="http://wxb.github.io/images/ajax/nodexhr.png">
+<meta property="og:image" content="http://wxb.github.io/images/ajax/ngxhr.png">
+<meta property="og:image" content="http://wxb.github.io/images/ajax/ngxhr1.png">
+<meta property="og:image" content="http://wxb.github.io/images/ajax/dump.png">
+<meta property="og:image" content="http://wxb.github.io/images/ajax/dump2.png">
+<meta property="og:image" content="http://wxb.github.io/images/ajax/dump1.png">
+<meta property="article:published_time" content="2017-03-08T17:49:46.000Z">
+<meta property="article:modified_time" content="2023-11-22T02:35:30.007Z">
+<meta property="article:author" content="虢國技酱">
+<meta property="article:tag" content="ajax">
+<meta property="article:tag" content="http">
+<meta property="article:tag" content="XMLHttpRequest">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://wxb.github.io/images/ajax/ajax.png">
+
+<link rel="canonical" href="http://wxb.github.io/2017/03/08/%E6%9C%89%E6%97%B6%E5%80%99%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9C%9F%E7%9A%84%E6%B2%A1%E6%B3%95%E7%A1%AE%E5%AE%9A%E8%BF%99%E6%98%AF%E4%B8%80%E6%AC%A1Ajax%E8%AF%B7%E6%B1%82.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>有时候服务端真的没法确定这是一次Ajax请求 | 虢國書館</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">虢國書館</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">静心·积累·坚持</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://wxb.github.io/2017/03/08/%E6%9C%89%E6%97%B6%E5%80%99%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9C%9F%E7%9A%84%E6%B2%A1%E6%B3%95%E7%A1%AE%E5%AE%9A%E8%BF%99%E6%98%AF%E4%B8%80%E6%AC%A1Ajax%E8%AF%B7%E6%B1%82.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/wangxb.png">
+      <meta itemprop="name" content="虢國技酱">
+      <meta itemprop="description" content="静心·积累·坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="虢國書館">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          有时候服务端真的没法确定这是一次Ajax请求
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-09 01:49:46" itemprop="dateCreated datePublished" datetime="2017-03-09T01:49:46+08:00">2017-03-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-22 10:35:30" itemprop="dateModified" datetime="2023-11-22T10:35:30+08:00">2023-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ajax/" itemprop="url" rel="index"><span itemprop="name">ajax</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ajax/http/" itemprop="url" rel="index"><span itemprop="name">http</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><img src="/images/ajax/ajax.png"></p>
+<p>对于web开发来说，ajax请求是不是感觉非常熟悉，是不是觉得对http来说应该分个：普通请求和ajax请求呢？是不是认为后端程序可以根据<code>X-Request-With</code>来判断请求是不是ajax？事实上，确实后端确实是这样做的，百度一下基本都是这答案；对于熟悉thinkphp的php开发者也应该知道tp的<code>isAjax</code>(5.0)或<code>IS_AJAX</code>(3.2)判断方法本质上也是<code>$_SERVER[&#39;HTTP_X_REQUESTED_WITH&#39;]</code>，那这个判断到底靠谱吗？基于<code>XMLHttpRequest</code>的ajax请求都会发送<code>X-Request-With</code>头吗？</p>
+<span id="more"></span>
+
+<h1 id="Ajax"><a href="#Ajax" class="headerlink" title="Ajax"></a>Ajax</h1><p>AJAX &#x3D; Asynchronous JavaScript and XML（异步的 JavaScript 和 XML）。名字里虽然包含了XML，但ajax数据格式却不限于XML！</p>
+<blockquote>
+<p>异步 JavaScript + XML, 本身不是一种技术, 是在2005年由 Jesse James Garrett 提出的一个术语, 描述了一种“新”的结合使用大量已经存在的技术的方式, 包括: HTML 或 XHTML, CSS, JavaScript, DOM, XML, XSLT, 还有最重要的 XMLHttpRequest 对象.<br>当这些技术以Ajax模型的方式集合起来，web应用可以更快地，无需加载整个页面就能更新用户界面。这使应用能更快地响应用户行为.<br>摘自：<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/AJAX">MDN AJAX</a></p>
+</blockquote>
+<p>Ajax最初是由Google使用起来的，在Google搜索时，在搜索框输入关键字时，JavaScript 会把这些字符发送到服务器，然后服务器会返回一个搜索建议的列表。随后又在Google地图上使用，大大提升了用户体验和性能。</p>
+<h1 id="XMLHttpRequest"><a href="#XMLHttpRequest" class="headerlink" title="XMLHttpRequest"></a>XMLHttpRequest</h1><p>Ajax实现最重要的一个依赖就是：<strong>XMLHttpRequest</strong>，一个web提供的API对象。</p>
+<blockquote>
+<p>XMLHttpRequest 是一个API, 它为客户端提供了在客户端和服务器之间传输数据的功能。它提供了一个通过 URL 来获取数据的简单方式，并且不会使整个页面刷新。这使得网页只更新一部分页面而不会打扰到用户。XMLHttpRequest 在 AJAX 中被大量使用。<br>XMLHttpRequest 是一个 JavaScript 对象，它最初由微软设计,随后被 Mozilla、Apple 和 Google采纳. 如今,该对象已经被 W3C组织标准化. 通过它,你可以很容易的取回一个URL上的资源数据. 尽管名字里有XML, 但 XMLHttpRequest 可以取回所有类型的数据资源，并不局限于XML。 而且除了HTTP ,它还支持file 和 ftp 协议.<br>摘自：<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest">MDN XMLHttpRequest</a></p>
+</blockquote>
+<p>注意是<strong>web API</strong>，也就是只在浏览器环境中可以使用，跟JavaScript没有一毛钱的关系！证明一下：</p>
+<ul>
+<li>浏览器上new个XMLHttpRequest对象<br><img src="/images/ajax/webxhr.png"><br>成功！</li>
+<li>node中试试？不都是写JavaScript吗！<br><img src="/images/ajax/nodexhr.png"><br>失败！</li>
+</ul>
+<p>所以明白<code>XMLHttpRequest</code>是浏览器提供给我们的接口这个概念了吧！浏览器提供了很多接口，有兴趣可以去瞅瞅 <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/API">Web API 接口</a></p>
+<h1 id="angular的http是基于xhr，后端却不知道"><a href="#angular的http是基于xhr，后端却不知道" class="headerlink" title="angular的http是基于xhr，后端却不知道"></a>angular的http是基于xhr，后端却不知道</h1><p>其实，问题出现就是今天前端的小伙伴在使用angular的http发生ajax请求时，后端的php却没有检查出来！起初以为angular的http不是基于XMLHttpRequest的，查看手册：</p>
+<blockquote>
+<p>现代浏览器支持两种基于 HTTP 的 API： XMLHttpRequest (XHR) 和 JSONP。少数浏览器还支持 Fetch。<br>Angular HTTP 库简化了 XHR 和 JSONP API 的编程，这就是本章所要讲的。<br>摘自 <a target="_blank" rel="noopener" href="https://angular.cn/docs/ts/latest/guide/server-communication.html#!#fetch-data">angular手册</a></p>
+</blockquote>
+<p>写个例子看看：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">var</span> app = angular.<span class="title function_">module</span>(<span class="string">&#x27;myApp&#x27;</span>, []);</span><br><span class="line">app.<span class="title function_">controller</span>(<span class="string">&#x27;siteCtrl&#x27;</span>, <span class="keyword">function</span>(<span class="params">$scope, $http</span>) &#123;</span><br><span class="line">    $http.<span class="title function_">get</span>(<span class="string">&quot;http://boss.local.com/Account/login&quot;</span>)</span><br><span class="line">            .<span class="title function_">success</span>(<span class="keyword">function</span> (<span class="params">response</span>) &#123;$scope.<span class="property">names</span> = response.<span class="property">sites</span>;&#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>看看结果：<br><img src="/images/ajax/ngxhr.png"><br>确实是XMLHttpRequest发送的ajax请求，但是后端却没有<code>HTTP_X_REQUESTED_WITH</code>信息。</p>
+<p>ok，我们手动设置一下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置X-Requested-With头信息</span></span><br><span class="line"><span class="keyword">var</span> app = angular.<span class="title function_">module</span>(<span class="string">&#x27;myApp&#x27;</span>, []);</span><br><span class="line">app.<span class="title function_">controller</span>(<span class="string">&#x27;siteCtrl&#x27;</span>, <span class="keyword">function</span>(<span class="params">$scope, $http</span>) &#123;</span><br><span class="line">    $http.<span class="title function_">get</span>(<span class="string">&quot;http://boss.local.com/Account/login&quot;</span>,&#123;</span><br><span class="line">        headers : &#123;<span class="string">&#x27;X-Requested-With&#x27;</span> : <span class="string">&#x27;XMLHttpRequest&#x27;</span>&#125;</span><br><span class="line">    &#125;)</span><br><span class="line">            .<span class="title function_">success</span>(<span class="keyword">function</span> (<span class="params">response</span>) &#123;$scope.<span class="property">names</span> = response.<span class="property">sites</span>;&#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>这下，后端就可以获取<code>HTTP_X_REQUESTED_WITH</code>信息了:<br><img src="/images/ajax/ngxhr1.png"></p>
+<h1 id="jquery是怎么做的？"><a href="#jquery是怎么做的？" class="headerlink" title="jquery是怎么做的？"></a>jquery是怎么做的？</h1><p>先看看jQuery的手册上怎么说的：</p>
+<blockquote>
+<p>headers (default: {})<br>Type: PlainObject<br>An object of additional header key&#x2F;value pairs to send along with requests using the XMLHttpRequest transport. The header X-Requested-With: XMLHttpRequest is always added, but its default XMLHttpRequest value can be changed here. Values in the headers setting can also be overwritten from within the beforeSend function. (version added: 1.5)</p>
+</blockquote>
+<p><strong>注意</strong>： <code>The header X-Requested-With: XMLHttpRequest is always added</code>，所以说使用jQuery的ajax类方法默认会设置<code>XMLHttpRequest</code>头信息，所以是jquery的使用导致我们以为，所有的ajax的请求就会自带<code>XMLHttpRequest</code>头信息！</p>
+<p>就不上示例了，更详细的信息，大家查看官方手册：<a target="_blank" rel="noopener" href="http://api.jquery.com/jQuery.ajax/">jQuery API</a></p>
+<h1 id="那么原生的JavaScript发生ajax请求呢？"><a href="#那么原生的JavaScript发生ajax请求呢？" class="headerlink" title="那么原生的JavaScript发生ajax请求呢？"></a>那么原生的JavaScript发生ajax请求呢？</h1><p>写个JavaScript原生的ajax请求，看看后端是否可以获取<code>X-Request-With</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xmlHttp=<span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">showHint</span>(<span class="params">str</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (str.<span class="property">length</span>==<span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&quot;txtHint&quot;</span>).<span class="property">innerHTML</span>=<span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span></span><br><span class="line">    &#123;<span class="comment">// Firefox, Opera 8.0+, Safari, IE7</span></span><br><span class="line">        xmlHttp=<span class="keyword">new</span> <span class="title class_">XMLHttpRequest</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span>(e)</span><br><span class="line">    &#123;<span class="comment">// Old IE</span></span><br><span class="line">        <span class="keyword">try</span></span><br><span class="line">        &#123;</span><br><span class="line">            xmlHttp=<span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Microsoft.XMLHTTP&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span>(e)</span><br><span class="line">        &#123;</span><br><span class="line">            alert (<span class="string">&quot;Your browser does not support XMLHTTP!&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> url=<span class="string">&quot;/Account/login?q=&quot;</span> + str;</span><br><span class="line">    url=url+<span class="string">&quot;&amp;sid=&quot;</span>+<span class="title class_">Math</span>.<span class="title function_">random</span>();</span><br><span class="line">    xmlHttp.<span class="title function_">open</span>(<span class="string">&quot;GET&quot;</span>,url,<span class="literal">false</span>);</span><br><span class="line">    xmlHttp.<span class="title function_">send</span>(<span class="literal">null</span>);</span><br><span class="line">    <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&quot;txtHint&quot;</span>).<span class="property">innerHTML</span>=xmlHttp.<span class="property">responseText</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>后端php打印<code>$_SERVER</code>:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">var_dump</span>(<span class="variable">$_SERVER</span>); <span class="keyword">die</span>;</span><br></pre></td></tr></table></figure>
+<p>结果：<br><img src="/images/ajax/dump.png"><br>可以看到并没有：<code>HTTP_X_REQUESTED_WITH</code>信息，后端这下就不知道这是XMLHttpRequest请求了，但是浏览器很清楚：<br><img src="/images/ajax/dump2.png"></p>
+<p>我们利用<code>setRequestHeader</code>在xmlHttp.send(null)前设置一下，</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">xmlHttp.<span class="title function_">open</span>(<span class="string">&quot;GET&quot;</span>,url,<span class="literal">false</span>);</span><br><span class="line">xmlHttp.<span class="title function_">setRequestHeader</span>(<span class="string">&#x27;X-Request-With&#x27;</span>, <span class="string">&#x27;XMLHttpRequest&#x27;</span>);</span><br><span class="line">xmlHttp.<span class="title function_">send</span>(<span class="literal">null</span>);</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>结果：<br><img src="/images/ajax/dump1.png"></p>
+<p><strong>所以，对原生JavaScript利用XMLHttpRequest发生请求，后端获取到的并不是一定准确的，很容易被伪造！而对http来说X-Request-With这样的头信息也只是普通的信息，http遇到这个信息没有任何表示，还是一次正常的http请求</strong></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>所以说，ajax或者说XMLHttpRequest发送的一次http请求，和普通的请求根本没有任何区别，对http协议来说，做的都是一样的事情；如果要说一点区别那可能就是<code>X-Request-With</code>这个头信息吧。如果没有这个头信息，除了浏览器谁也不知道这是一次ajax请求！</p>
+<p>当然，正是由于XMLHttpRequest是web API，浏览器提供的一个接口，让我们在不刷新页面的前提下发送一次http请求，但是为了安全防止伪造，特别是在同源策略下，浏览器对XMLHttpRequest的请求做了一些限制，我们可以修改某些header头信息，但是有部分头信息是不允许修改的，浏览器会自动添加：（关于这些头信息的意义大家请仔细学习http）</p>
+<ul>
+<li>Accept-Charset</li>
+<li>Accept-Encoding</li>
+<li>Connection</li>
+<li>Content-Length</li>
+<li>Cookie</li>
+<li>Cookie2</li>
+<li>Content-Transfer-Encoding</li>
+<li>Date</li>
+<li>Expect</li>
+<li>Host</li>
+<li>Keep-Alive</li>
+<li>Referer</li>
+<li>TE</li>
+<li>Trailer</li>
+<li>Transfer-Encoding</li>
+<li>Upgrade</li>
+<li>User-Agent</li>
+<li>Via</li>
+</ul>
+<p>最后，要说的是：如果你需要在后端区分Ajax提交，那就务必确认你所使用的前端框架设置了<code>X-Request-With</code>这个头信息，如果是写的原生JavaScript的话，那就一定要设置<code>xhr.setRequestHeader(&#39;X-Request-With&#39;, &#39;XMLHttpRequest&#39;)</code></p>
+<p>ok,解决了问题，做个记录，欢迎大家拍砖！</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ajax/" rel="tag"># ajax</a>
+              <a href="/tags/http/" rel="tag"># http</a>
+              <a href="/tags/XMLHttpRequest/" rel="tag"># XMLHttpRequest</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/03/03/%E5%85%B3%E4%BA%8Ejs%E6%A8%A1%E5%9D%97%E5%8C%96%E7%9A%84%E4%B8%89%E4%B8%AA%E8%A7%84%E8%8C%83.html" rel="prev" title="关于js模块化的三个规范">
+      <i class="fa fa-chevron-left"></i> 关于js模块化的三个规范
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/03/11/%E5%B0%8F%E7%A8%8B%E5%BA%8FsoccerGame.html" rel="next" title="小程序soccerGame">
+      小程序soccerGame <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Ajax"><span class="nav-number">1.</span> <span class="nav-text">Ajax</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#XMLHttpRequest"><span class="nav-number">2.</span> <span class="nav-text">XMLHttpRequest</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#angular%E7%9A%84http%E6%98%AF%E5%9F%BA%E4%BA%8Exhr%EF%BC%8C%E5%90%8E%E7%AB%AF%E5%8D%B4%E4%B8%8D%E7%9F%A5%E9%81%93"><span class="nav-number">3.</span> <span class="nav-text">angular的http是基于xhr，后端却不知道</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#jquery%E6%98%AF%E6%80%8E%E4%B9%88%E5%81%9A%E7%9A%84%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">jquery是怎么做的？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%82%A3%E4%B9%88%E5%8E%9F%E7%94%9F%E7%9A%84JavaScript%E5%8F%91%E7%94%9Fajax%E8%AF%B7%E6%B1%82%E5%91%A2%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">那么原生的JavaScript发生ajax请求呢？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="虢國技酱"
+      src="/images/wangxb.png">
+  <p class="site-author-name" itemprop="name">虢國技酱</p>
+  <div class="site-description" itemprop="description">静心·积累·坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wxb" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wxb" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wxb0328@icloud.com" title="E-Mail → mailto:wxb0328@icloud.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ramboxbwang" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ramboxbwang" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/wangxb" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;wangxb" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">虢國技酱</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a0ce361efbb68e2c2be6',
+      clientSecret: '272365b7568ffbb484cf975261be83fe79a02061',
+      repo        : 'wxb.github.io',
+      owner       : 'wxb',
+      admin       : ['wxb'],
+      id          : 'f3dd93c6bbbb5e4abdb9c90f9756e7b7',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

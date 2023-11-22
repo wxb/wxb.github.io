@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+<!-- Referrer Policy调整致不蒜子单页面统计出错:https://senorui.top/posts/c33f.html -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wxb.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="切片切片是一种数据结构，这种数据结构便于使用和管理数据集合。切片是围绕动态数组的概念构建的，可以按需自动增长和缩小。切片的动态增长是通过内置函数 append 来实现的。 这个函数可以快速且高效地增长切片。还可以通过对切片再次切片来缩小一个切片的大小。因为切片的底层内存也是在连续块中分配的，所以切片还能获得索引、迭代以及为垃圾回收优化的好处。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go语言梳理-slice切片解析">
+<meta property="og:url" content="http://wxb.github.io/2019/05/20/go%E8%AF%AD%E8%A8%80%E6%A2%B3%E7%90%86-slice%E5%88%87%E7%89%87%E8%A7%A3%E6%9E%90.html">
+<meta property="og:site_name" content="虢國書館">
+<meta property="og:description" content="切片切片是一种数据结构，这种数据结构便于使用和管理数据集合。切片是围绕动态数组的概念构建的，可以按需自动增长和缩小。切片的动态增长是通过内置函数 append 来实现的。 这个函数可以快速且高效地增长切片。还可以通过对切片再次切片来缩小一个切片的大小。因为切片的底层内存也是在连续块中分配的，所以切片还能获得索引、迭代以及为垃圾回收优化的好处。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://wxb.github.io/images/golang/0003.png">
+<meta property="og:image" content="http://wxb.github.io/images/golang/0004.png">
+<meta property="og:image" content="http://wxb.github.io/images/golang/0005.png">
+<meta property="og:image" content="http://wxb.github.io/images/golang/0006.png">
+<meta property="og:image" content="http://wxb.github.io/images/golang/0007.png">
+<meta property="og:image" content="http://wxb.github.io/images/golang/0008.png">
+<meta property="article:published_time" content="2019-05-20T09:35:20.000Z">
+<meta property="article:modified_time" content="2023-11-22T02:35:30.003Z">
+<meta property="article:author" content="虢國技酱">
+<meta property="article:tag" content="转载">
+<meta property="article:tag" content="slice">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://wxb.github.io/images/golang/0003.png">
+
+<link rel="canonical" href="http://wxb.github.io/2019/05/20/go%E8%AF%AD%E8%A8%80%E6%A2%B3%E7%90%86-slice%E5%88%87%E7%89%87%E8%A7%A3%E6%9E%90.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>go语言梳理-slice切片解析 | 虢國書館</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">虢國書館</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">静心·积累·坚持</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://wxb.github.io/2019/05/20/go%E8%AF%AD%E8%A8%80%E6%A2%B3%E7%90%86-slice%E5%88%87%E7%89%87%E8%A7%A3%E6%9E%90.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/wangxb.png">
+      <meta itemprop="name" content="虢國技酱">
+      <meta itemprop="description" content="静心·积累·坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="虢國書館">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          go语言梳理-slice切片解析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-05-20 17:35:20" itemprop="dateCreated datePublished" datetime="2019-05-20T17:35:20+08:00">2019-05-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-22 10:35:30" itemprop="dateModified" datetime="2023-11-22T10:35:30+08:00">2023-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/golang/" itemprop="url" rel="index"><span itemprop="name">golang</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="切片"><a href="#切片" class="headerlink" title="切片"></a>切片</h2><p>切片是一种数据结构，这种数据结构便于使用和管理数据集合。切片是围绕动态数组的概念构建的，可以按需自动增长和缩小。切片的动态增长是通过内置函数 append 来实现的。</p>
+<p>这个函数可以快速且高效地增长切片。还可以通过对切片再次切片来缩小一个切片的大小。因为切片的底层内存也是在连续块中分配的，所以切片还能获得索引、迭代以及为垃圾回收优化的好处。</p>
+<span id="more"></span>
+<h2 id="内部实现"><a href="#内部实现" class="headerlink" title="内部实现"></a>内部实现</h2><p>切片是一个很小的对象，对底层数组进行了抽象，并提供相关的操作方法。切片有 3 个字段的数据结构，这 3 个字段分别是指向底层数组的指针、切片访问的元素的个数（即长度）和切片允许增长到的元素个数（即容量）。这些数据结构包含 Go 语言需要操作底层数组的元数据.如下图<br><img src="/images/golang/0003.png"></p>
+<h2 id="创建和初始化"><a href="#创建和初始化" class="headerlink" title="创建和初始化"></a>创建和初始化</h2><p>Go 语言中有几种方法可以创建和初始化切片。是否能提前知道切片需要的容量通常会决定要如何创建切片。</p>
+<ul>
+<li><p>1.0 make和切片字面量<br>  一种创建切片的方法是使用内置的 make 函数。当使用 make 时，需要传入一个参数，指定切片的长度</p>
+</li>
+<li><p>1.1 使用长度声明一个字符串切片</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个字符串切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度和容量都是 5 个元素</span></span><br><span class="line"></span><br><span class="line">slice := <span class="built_in">make</span>([]<span class="type">string</span>, <span class="number">5</span>)</span><br></pre></td></tr></table></figure>
+<p>如果只指定长度，那么切片的容量和长度相等。也可以分别指定长度和容量,如1.2</p>
+</li>
+<li><p>1.2 使用长度和容量声明整型切片</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个整型切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度为 3 个元素，容量为 5 个元素</span></span><br><span class="line"></span><br><span class="line">slice := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">3</span>, <span class="number">5</span>)</span><br></pre></td></tr></table></figure>
+<p>分别指定长度和容量时，创建的切片，底层数组的长度是指定的容量，但是初始化后并不能访问所有的数组元素。例如1.2创建的切片可以访问 3 个元素，</p>
+<p>而底层数组拥有 5 个元素。剩余的 2 个元素可以在后期操作中合并到切片，可以通过切片访问这些元素。</p>
+</li>
+<li><p>1.3 通过切片字面量来声明切片</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建字符串切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度和容量都是 5 个元素</span></span><br><span class="line"></span><br><span class="line">slice := []<span class="type">string</span>&#123;<span class="string">&quot;Red&quot;</span>, <span class="string">&quot;Blue&quot;</span>, <span class="string">&quot;Green&quot;</span>, <span class="string">&quot;Yellow&quot;</span>, <span class="string">&quot;Pink&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个整型切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度和容量都是 3 个元素</span></span><br><span class="line"></span><br><span class="line">slice := []<span class="type">int</span>&#123;<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当使用切片字面量时，可以设置初始长度和容量。要做的就是在初始化时给出所需的长度和容量作为索引。如1.4创建长度和容量都是100 个元素的切片。</p>
+</li>
+<li><p>1.4 使用索引声明切片</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建字符串切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用空字符串初始化第 100 个元素</span></span><br><span class="line"></span><br><span class="line">slice := []<span class="type">string</span>&#123;<span class="number">99</span>: <span class="string">&quot;&quot;</span>&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="使用切片"><a href="#使用切片" class="headerlink" title="使用切片"></a>使用切片</h2><ul>
+<li><p>2.1 使用切片字面量来声明切片</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个整型切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度和容量都是 5 个元素</span></span><br><span class="line"></span><br><span class="line">slice := []<span class="type">int</span>&#123;<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个新切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度为 2 个元素，容量为 4 个元素</span></span><br><span class="line"></span><br><span class="line">newSlice := slice[<span class="number">1</span>:<span class="number">3</span>]</span><br></pre></td></tr></table></figure>
+
+<p><strong>两个索引计算长度和容量</strong></p>
+<p>对底层数组容量是 k 的切片 slice[i:j]来说</p>
+<p>长度: j - i</p>
+<p>容量: k - i</p>
+<p>对底层数组容量是 5 的切片 slice[1:3]来说</p>
+<p>长度: 3 - 1 &#x3D; 2</p>
+<p>容量: 5 - 1 &#x3D; 4</p>
+<p>执行完代码2.1 中的切片动作后，我们有了两个切片，它们共享同一段底层数组，但通过不同的切片会看到底层数组的不同部分, 如下图:<br><img src="/images/golang/0004.png"><br>第一个切片 slice 能够看到底层数组全部 5 个元素的容量，不过之后的 newSlice 就看不到。对于 newSlice，底层数组的容量只有 4 个元素。newSlice 无法访问到它所指向的底层数组的第一个元素之前的部分。</p>
+<p>所以，对 newSlice 来说，之前的那些元素就是不存在的。现在两个切片共享同一个底层数组。如果一个切片修改了该底层数组的共享部分，另一个切片也能感知到, 如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个整型切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度和容量都是 5 个元素</span></span><br><span class="line"></span><br><span class="line">slice := []<span class="type">int</span>&#123;<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>创建一个新切片</p>
+<p>其长度是 2 个元素，容量是 4 个元素</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">newSlice := slice[<span class="number">1</span>:<span class="number">3</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">// 修改 newSlice 索引为 1 的元素</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 同时也修改了原来的 slice 的索引为 2 的元素</span></span><br><span class="line"></span><br><span class="line">newSlice[<span class="number">1</span>] = <span class="number">35</span></span><br></pre></td></tr></table></figure>
+
+<p>把 35 赋值给 newSlice 的第二个元素（索引为 1 的元素）的同时也是在修改原来的 slice的第 3 个元素（索引为 2 的元素）</p>
+<p>slice变为[]int{10, 20, 35, 40, 50},  newSlice变为[]int{20, 35}</p>
+</li>
+<li><p>2.2 切片append扩容</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 其长度和容量都是 5 个元素</span></span><br><span class="line"></span><br><span class="line">slice := []<span class="type">int</span>&#123;<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>, <span class="number">50</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个新切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度为 2 个元素，容量为 4 个元素</span></span><br><span class="line"></span><br><span class="line">newSlice := slice[<span class="number">1</span>:<span class="number">3</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用原有的容量来分配一个新元素</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 将新元素赋值为 60</span></span><br><span class="line"></span><br><span class="line">newSlice = <span class="built_in">append</span>(newSlice, <span class="number">60</span>)</span><br></pre></td></tr></table></figure>
+<p>append 操作完成后，两个切片和底层数组的布局如图<br><img src="/images/golang/0005.png"><br>因为 newSlice 在底层数组里还有额外的容量可用，append 操作将可用的元素合并到切片的长度，并对其进行赋值。由于和原始的 slice 共享同一个底层数组，slice 中索引为3的元素的值也被改动了。</p>
+<p>如果切片的底层数组没有足够的可用容量，append 函数会创建一个新的底层数组，将被引用的现有的值复制到新数组里，再追加新值, 如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个整型切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度和容量都是 4 个元素</span></span><br><span class="line"></span><br><span class="line">slice := []<span class="type">int</span>&#123;<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>, <span class="number">40</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 向切片追加一个新元素</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 将新元素赋值为 50</span></span><br><span class="line"></span><br><span class="line">newSlice := <span class="built_in">append</span>(slice, <span class="number">50</span>)</span><br></pre></td></tr></table></figure>
+<p>当这个 append 操作完成后，newSlice 拥有一个全新的底层数组，这个数组的容量是原来的两倍, 如下图<br><img src="/images/golang/0006.png"><br>函数 append 会智能地处理底层数组的容量增长。在切片的容量小于 1000 个元素时，总是会成倍地增加容量。一旦元素个数超过1000，容量的增长因子会设为 1.25，也就是会每次增加 25%的容量。</p>
+</li>
+<li><p>2.3 使用 3 个索引创建切片</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建字符串切片</span></span><br><span class="line"><span class="comment">// 其长度和容量都是 5 个元素</span></span><br><span class="line">source := []<span class="type">string</span>&#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;Orange&quot;</span>, <span class="string">&quot;Plum&quot;</span>, <span class="string">&quot;Banana&quot;</span>, <span class="string">&quot;Grape&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将第三个元素切片，并限制容量</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度为 1 个元素，容量为 2 个元素</span></span><br><span class="line"></span><br><span class="line">slice := source[<span class="number">2</span>:<span class="number">3</span>:<span class="number">4</span>]</span><br></pre></td></tr></table></figure>
+<p>这个切片操作执行后，新切片里从底层数组引用了 1 个元素，容量是 2 个元素。具体来说，新切片引用了 Plum 元素，并将容量扩展到 Banana 元素,如下图<br><img src="/images/golang/0007.png"></p>
+<p><strong>三个索引计算长度和容量</strong></p>
+<p>对于 slice[i:j:k] 或 [2:3:4]</p>
+<p>长度: j – i 或 3 - 2 &#x3D; 1</p>
+<p>容量: k – i 或 4 - 2 &#x3D; 2</p>
+<p>和之前一样，第一个值表示新切片开始的元素的索引位置，这个例子中是 2。第二个值表示开始的索引位置（2）加上希望包括的元素的个数（1），</p>
+<p>2+1 的结果是 3，所以第二个值就是 3。为了设置容量，从索引位置 2 开始，加上希望容量中包含的元素的个数（2），就得到了第三个值 4。</p>
+<p><strong>设置容量大于已有容量的语言运行时错误</strong></p>
+<p>如果试图设置的容量比可用的容量还大，就会得到一个语言运行时错误，如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这个切片操作试图设置容量为 4 </span></span><br><span class="line"><span class="comment">// 这比可用的容量大</span></span><br><span class="line">slice := source[<span class="number">2</span>:<span class="number">3</span>:<span class="number">6</span>]</span><br><span class="line">Runtime Error:</span><br><span class="line"><span class="built_in">panic</span>: runtime <span class="type">error</span>: slice bounds out of <span class="keyword">range</span></span><br></pre></td></tr></table></figure>
+<p>因为内置函数 append 会首先使用可用容量。一旦没有可用容量，会分配一个新的底层数组。这导致很容易忘记切片间正在共享同一个底层数组。</p>
+<p>一旦发生这种情况，对切片进行修改，很可能会导致随机且奇怪的问题。对切片内容的修改会影响多个切片，却很难找到问题的原因。</p>
+<p><strong>设置长度和容量一样的好处</strong></p>
+<p>如果在创建切片时设置切片的容量和长度一样，就可以强制让新切片的第一个 append 操作创建新的底层数组，与原有的底层数组分离。</p>
+<p>新切片与原有的底层数组分离后，可以安全地进行后续修改，如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建字符串切片</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度和容量都是 5 个元素</span></span><br><span class="line"></span><br><span class="line">source := []<span class="type">string</span>&#123;<span class="string">&quot;Apple&quot;</span>, <span class="string">&quot;Orange&quot;</span>, <span class="string">&quot;Plum&quot;</span>, <span class="string">&quot;Banana&quot;</span>, <span class="string">&quot;Grape&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 对第三个元素做切片，并限制容量</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 其长度和容量都是 1 个元素</span></span><br><span class="line"></span><br><span class="line">slice := source[<span class="number">2</span>:<span class="number">3</span>:<span class="number">3</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">// 向 slice 追加新字符串</span></span><br><span class="line"></span><br><span class="line">slice = <span class="built_in">append</span>(slice, <span class="string">&quot;Kiwi&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>如果不加第三个索引，由于剩余的所有容量都属于 slice，向 slice 追加 Kiwi 会改变原有底层数组索引为 3 的元素的值 Banana。不过在代码中我们限制了 slice 的容量为 1。</p>
+<p>当我们第一次对 slice 调用 append 的时候，会创建一个新的底层数组，这个数组包括 2 个元素,并将水果 Plum 复制进来，再追加新水果 Kiwi，并返回一个引用了这个底层数组的新切片</p>
+<p>因为新的切片 slice 拥有了自己的底层数组，所以杜绝了可能发生的问题。我们可以继向新切片里追加水果，而不用担心会不小心修改了其他切片里的水果。同时，也保持了为切片申请新的底层数组的简洁。</p>
+<p>上面代码操作之后的新切片的表示如下图<br><img src="/images/golang/0008.png"></p>
+</li>
+</ul>
+<blockquote>
+<p>转载自：<a target="_blank" rel="noopener" href="https://studygolang.com/articles/20479">slice解析</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%BD%AC%E8%BD%BD/" rel="tag"># 转载</a>
+              <a href="/tags/slice/" rel="tag"># slice</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/04/23/%E4%BD%A0%E5%88%AB%E6%80%A5-%E6%85%A2%E6%85%A2%E6%9D%A5.html" rel="prev" title="你别急,慢慢来">
+      <i class="fa fa-chevron-left"></i> 你别急,慢慢来
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/05/22/MySQL%E4%B8%BB%E4%BB%8E-Master-Slave-%E5%AE%9E%E6%93%8D.html" rel="next" title="MySQL主从(Master-Slave)实操">
+      MySQL主从(Master-Slave)实操 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%87%E7%89%87"><span class="nav-number">1.</span> <span class="nav-text">切片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E9%83%A8%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">内部实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%92%8C%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">3.</span> <span class="nav-text">创建和初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%88%87%E7%89%87"><span class="nav-number">4.</span> <span class="nav-text">使用切片</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="虢國技酱"
+      src="/images/wangxb.png">
+  <p class="site-author-name" itemprop="name">虢國技酱</p>
+  <div class="site-description" itemprop="description">静心·积累·坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wxb" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wxb" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wxb0328@icloud.com" title="E-Mail → mailto:wxb0328@icloud.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ramboxbwang" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ramboxbwang" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/wangxb" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;wangxb" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">虢國技酱</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a0ce361efbb68e2c2be6',
+      clientSecret: '272365b7568ffbb484cf975261be83fe79a02061',
+      repo        : 'wxb.github.io',
+      owner       : 'wxb',
+      admin       : ['wxb'],
+      id          : '54f8e4b9dfb3d05c41602be4169737c7',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+<!-- Referrer Policy调整致不蒜子单页面统计出错:https://senorui.top/posts/c33f.html -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wxb.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="MySQL数据库自身提供的主从复制功能可以方便的实现数据的多处自动备份，实现数据库的拓展。多个数据备份不仅可以加强数据的安全性，通过实现读写分离还能进一步提升数据库的负载性能。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL主从(Master-Slave)实操">
+<meta property="og:url" content="http://wxb.github.io/2019/05/22/MySQL%E4%B8%BB%E4%BB%8E-Master-Slave-%E5%AE%9E%E6%93%8D.html">
+<meta property="og:site_name" content="虢國書館">
+<meta property="og:description" content="MySQL数据库自身提供的主从复制功能可以方便的实现数据的多处自动备份，实现数据库的拓展。多个数据备份不仅可以加强数据的安全性，通过实现读写分离还能进一步提升数据库的负载性能。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/10.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/11.png">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/12.png">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/11.png">
+<meta property="article:published_time" content="2019-05-22T08:07:58.000Z">
+<meta property="article:modified_time" content="2023-11-22T02:35:29.999Z">
+<meta property="article:author" content="虢國技酱">
+<meta property="article:tag" content="主从复制">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://wxb.github.io/images/mysql/10.jpg">
+
+<link rel="canonical" href="http://wxb.github.io/2019/05/22/MySQL%E4%B8%BB%E4%BB%8E-Master-Slave-%E5%AE%9E%E6%93%8D.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MySQL主从(Master-Slave)实操 | 虢國書館</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">虢國書館</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">静心·积累·坚持</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://wxb.github.io/2019/05/22/MySQL%E4%B8%BB%E4%BB%8E-Master-Slave-%E5%AE%9E%E6%93%8D.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/wangxb.png">
+      <meta itemprop="name" content="虢國技酱">
+      <meta itemprop="description" content="静心·积累·坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="虢國書館">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MySQL主从(Master-Slave)实操
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-05-22 16:07:58" itemprop="dateCreated datePublished" datetime="2019-05-22T16:07:58+08:00">2019-05-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-22 10:35:29" itemprop="dateModified" datetime="2023-11-22T10:35:29+08:00">2023-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><img src="/images/mysql/10.jpg"></p>
+<p>MySQL数据库自身提供的主从复制功能可以方便的实现数据的多处自动备份，实现数据库的拓展。多个数据备份不仅可以加强数据的安全性，通过实现读写分离还能进一步提升数据库的负载性能。</p>
+<span id="more"></span>
+
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
+<li>MySQL自身提供的主从复制是基于MySQL server层的逻辑日志binlog实现的；binlog开启后，会记录一个数据库操作逻辑二级制文件 </li>
+<li>主从数据库一般有：一主多从 和 多主多从。默认情况下 主数据库(master) 负责数据的写入，从数据库(slave) 负责数据查询。多个从数据库能够有效解决应用查询数据库的瓶颈，提高应用性能    </li>
+<li>读写分离，主从数据库不仅可以提高应用在数据库方向的性能；灾备，同时在数据安全方面也是一项非常使用的方案   </li>
+<li>主数据库一旦启动binlog二进制日志后，在该数据库上的操作都会以“事件”的方式记录到binlog中，从数据库(slave)通过一个I&#x2F;O线程与主数据库(master)保持通信，并监控master的binlog变化，如果发现master二进制日志文件发生变化，则会把变化复制到自己的中继日志中，然后slave的一个SQL线程会把相关的“事件”执行到自己的数据库中，以此实现从数据库和主数据库的一致性，也就实现了主从复制。</li>
+</ul>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><ul>
+<li>主服务器<ul>
+<li>开启二进制日志(binlog)     <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">log-bin=mysql-bin</span><br></pre></td></tr></table></figure></li>
+<li>配置唯一的 <code>server-id</code>      <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">log-bin=mysql-bin</span><br><span class="line">server-id=1</span><br></pre></td></tr></table></figure></li>
+<li>重启mysql服务mysqld<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server mysqld restart  # 容器的话直接重启容器：docker restart container-name|container-ID</span><br></pre></td></tr></table></figure></li>
+<li>创建一个用于slave和master通信的用户账号<ul>
+<li>创建账号    <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE USER &#x27;repl&#x27;@&#x27;172.17.0.%&#x27; IDENTIFIED BY &#x27;slavepass&#x27;;</span><br></pre></td></tr></table></figure></li>
+<li>分配权限     <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; GRANT REPLICATION SLAVE ON *.* TO &#x27;repl&#x27;@&#x27;172.17.0.%&#x27;;</span><br></pre></td></tr></table></figure></li>
+<li>刷新权限  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>获得master二进制日志文件名及位置<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql &gt; SHOW MASTER STATUS;</span><br><span class="line">+------------------+----------+--------------+------------------+</span><br><span class="line">| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB |</span><br><span class="line">+------------------+----------+--------------+------------------+</span><br><span class="line">| mysql-bin.000003 | 73       | test         | manual,mysql     |</span><br><span class="line">+------------------+----------+--------------+------------------+ </span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>从服务器<ul>
+<li>配置唯一的server-id<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">server-id=2</span><br></pre></td></tr></table></figure></li>
+<li>重启mysql服务mysqld<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server mysqld restart  # 容器的话直接重启容器：docker restart container-name|container-ID</span><br></pre></td></tr></table></figure></li>
+<li>使用master创建的账号配置从服务器要读取的master信息<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt;  CHANGE MASTER TO</span><br><span class="line">        MASTER_HOST=&#x27;172.17.0.2&#x27;,           # Master的地址</span><br><span class="line">        MASTER_USER=&#x27;repl&#x27;,                 # 用于数据同步的用户</span><br><span class="line">        MASTER_PASSWORD=&#x27;slavepass&#x27;,        # 用于同步的用户的密码</span><br><span class="line">        MASTER_LOG_FILE=&#x27;mysql-bin.000002&#x27;, # 指定 Slave 从哪个日志文件开始复制数据，即上文中提到的 File 字段的值</span><br><span class="line">        MASTER_LOG_POS=73,                  # 从哪个 Position 开始读，即上文中提到的 Position 字段的值</span><br><span class="line">        MASTER_PORT=3306;                   # Master的端口号</span><br></pre></td></tr></table></figure></li>
+<li>启动slave<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; start slave; </span><br></pre></td></tr></table></figure></li>
+<li>修改slave从服务器上的主服务器master配置<ul>
+<li>首先，关闭slave<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; stop slave;</span><br></pre></td></tr></table></figure></li>
+<li>然后，修改<code>MASTER_*</code>的配置<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt;  CHANGE MASTER TO</span><br><span class="line">      MASTER_HOST=&#x27;172.17.0.3&#x27;,</span><br><span class="line">      MASTER_USER=&#x27;repl&#x27;,</span><br><span class="line">      MASTER_PASSWORD=&#x27;slavepass&#x27;,</span><br><span class="line">      MASTER_LOG_FILE=&#x27;mysql-bin.000002&#x27;,</span><br><span class="line">      MASTER_LOG_POS=73,</span><br><span class="line">      MASTER_PORT=3306;</span><br></pre></td></tr></table></figure></li>
+<li>启动slave<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; start slave;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>设置slave只读<code>read_only</code>(可选)<ul>
+<li>在我们常见的应用中，从数据库一般只服务查询，所以配置从服务器只读可以避免一下人为失误导致的数据不一致</li>
+<li>一般我们使用<code>read_only</code>设置slave只读，这种模式下会限制普通用户的写操作；但是不会影响slave同步复制的功能，同时也不能限制拥有super权限的用户进行写数据；</li>
+<li>关于MySQL <code>read_only</code> 更多信息：<a href=""></a>;</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><ul>
+<li>查看主从同步状态，主要关注这三个信息：<code>Slave_IO_Running</code>,<code>Slave_SQL_Running</code>,<code>Last_IO_Error</code>,<code>Last_SQL_Error</code><br><img src="/images/mysql/11.png"></li>
+<li>测试主从复制：在Master创建一个数据库，然后检查Slave是否存在此数据库</li>
+</ul>
+<h2 id="可能出现问题"><a href="#可能出现问题" class="headerlink" title="可能出现问题"></a>可能出现问题</h2><ul>
+<li>如果 <code>Slave_IO_Running</code> 和 <code>Slave_SQL_Running</code> 都是No, 请确认是否开启主从复制过程(<code>start slave</code>);<br><img src="/images/mysql/12.png"></li>
+<li>如果 <code>Slave_IO_Running</code> 一直是 <code>Connecting</code>时，查看<code>Last_IO_Error</code>提示的错误信息<br><img src="/images/mysql/11.png"><br>这种情况一般下面几种原因造成的:<ul>
+<li>网络不通<br>检查ip,端口</li>
+<li>密码不对<br>检查是否创建用于同步的用户和用户密码是否正确</li>
+<li>pos不对<br>检查Master的 Position</li>
+</ul>
+</li>
+</ul>
+<h2 id="docker注意事项"><a href="#docker注意事项" class="headerlink" title="docker注意事项"></a>docker注意事项</h2><ul>
+<li>查询容器的ip<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker inspect --format=&#x27;&#123;&#123;.NetworkSettings.IPAddress&#125;&#125;&#x27; container-name|container-id</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>docker inspect<br>Description: Return low-level information on Docker objects<br>Usage: docker inspect [OPTIONS] NAME|ID [NAME|ID…]<br>参考 <a target="_blank" rel="noopener" href="https://docs.docker.com/engine/reference/commandline/inspect/">docker inspect</a></p>
+</blockquote>
+</li>
+<li>容器端口<br>Master对外映射的端口是3339，Slave对外映射的端口是3340。因为docker容器是相互独立的，每个容器有其独立的ip，所以不同容器使用相同的端口并不会冲突。这里我们应该尽量使用mysql默认的3306端口，否则可能会出现无法通过ip连接docker容器内mysql的问题。</li>
+</ul>
+<blockquote>
+<p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/gl-developer/p/6170423.html">MySQL主从复制(Master-Slave)实践</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/songwenjie/p/9371422.html">基于Docker的Mysql主从复制搭建</a></li>
+</ul>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" rel="tag"># 主从复制</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/05/20/go%E8%AF%AD%E8%A8%80%E6%A2%B3%E7%90%86-slice%E5%88%87%E7%89%87%E8%A7%A3%E6%9E%90.html" rel="prev" title="go语言梳理-slice切片解析">
+      <i class="fa fa-chevron-left"></i> go语言梳理-slice切片解析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/05/22/MySQL%E5%8F%AA%E8%AF%BB%E6%A8%A1%E5%BC%8F-read-only%E5%92%8CFTWRL.html" rel="next" title="MySQL只读模式:read_only和FTWRL">
+      MySQL只读模式:read_only和FTWRL <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81"><span class="nav-number">3.</span> <span class="nav-text">验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E8%83%BD%E5%87%BA%E7%8E%B0%E9%97%AE%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">可能出现问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#docker%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">5.</span> <span class="nav-text">docker注意事项</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="虢國技酱"
+      src="/images/wangxb.png">
+  <p class="site-author-name" itemprop="name">虢國技酱</p>
+  <div class="site-description" itemprop="description">静心·积累·坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wxb" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wxb" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wxb0328@icloud.com" title="E-Mail → mailto:wxb0328@icloud.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ramboxbwang" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ramboxbwang" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/wangxb" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;wangxb" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">虢國技酱</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a0ce361efbb68e2c2be6',
+      clientSecret: '272365b7568ffbb484cf975261be83fe79a02061',
+      repo        : 'wxb.github.io',
+      owner       : 'wxb',
+      admin       : ['wxb'],
+      id          : '4f039a8b7d460aa967e25cc6386ac021',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

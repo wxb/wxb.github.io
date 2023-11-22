@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+<!-- Referrer Policy调整致不蒜子单页面统计出错:https://senorui.top/posts/c33f.html -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wxb.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="数据库中的join成为连接，连接的主要作用是根据两个或多个表中的列之间的关系，获取存在于不同表中的数据。连接分为三类：内连接、外连接、全连接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL中的各种join">
+<meta property="og:url" content="http://wxb.github.io/2016/12/15/MySQL%E4%B8%AD%E7%9A%84%E5%90%84%E7%A7%8Djoin.html">
+<meta property="og:site_name" content="虢國書館">
+<meta property="og:description" content="数据库中的join成为连接，连接的主要作用是根据两个或多个表中的列之间的关系，获取存在于不同表中的数据。连接分为三类：内连接、外连接、全连接">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/01.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/02.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/03.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/04.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/05.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/06.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/07.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/08.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/mysql/09.jpg">
+<meta property="article:published_time" content="2016-12-15T02:27:11.000Z">
+<meta property="article:modified_time" content="2023-11-22T02:35:29.999Z">
+<meta property="article:author" content="虢國技酱">
+<meta property="article:tag" content="join">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://wxb.github.io/images/mysql/01.jpg">
+
+<link rel="canonical" href="http://wxb.github.io/2016/12/15/MySQL%E4%B8%AD%E7%9A%84%E5%90%84%E7%A7%8Djoin.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MySQL中的各种join | 虢國書館</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">虢國書館</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">静心·积累·坚持</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://wxb.github.io/2016/12/15/MySQL%E4%B8%AD%E7%9A%84%E5%90%84%E7%A7%8Djoin.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/wangxb.png">
+      <meta itemprop="name" content="虢國技酱">
+      <meta itemprop="description" content="静心·积累·坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="虢國書館">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MySQL中的各种join
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-12-15 10:27:11" itemprop="dateCreated datePublished" datetime="2016-12-15T10:27:11+08:00">2016-12-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-22 10:35:29" itemprop="dateModified" datetime="2023-11-22T10:35:29+08:00">2023-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/SQL/" itemprop="url" rel="index"><span itemprop="name">SQL</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>数据库中的<code>join</code>成为<strong>连接</strong>，连接的主要作用是根据两个或多个表中的列之间的关系，获取存在于不同表中的数据。连接分为三类：<strong>内连接</strong>、<strong>外连接</strong>、<strong>全连接</strong></p>
+<span id="more"></span>
+
+<h1 id="上图"><a href="#上图" class="headerlink" title="上图"></a>上图</h1><p><img src="/images/mysql/01.jpg"><br><em><strong>图片来自网络</strong></em></p>
+<h1 id="数据准备"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备</h1><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建测试数据库</span></span><br><span class="line"><span class="keyword">CREATE</span> DATABASE join_test CHARSET UTF8;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 人员信息表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> `Persons` (</span><br><span class="line">  `id` <span class="type">int</span>(<span class="number">11</span>) unsigned <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">  `LastName` <span class="type">char</span>(<span class="number">16</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">  `FirstName` <span class="type">char</span>(<span class="number">16</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">  `Address` <span class="type">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">  `City` <span class="type">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">  <span class="keyword">PRIMARY</span> KEY (`id`)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>utf8;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 订单表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> `Orders` (</span><br><span class="line">  `id` <span class="type">int</span>(<span class="number">11</span>) unsigned <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">  `OrderNo` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span>,</span><br><span class="line">  `Pid` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span>,</span><br><span class="line">  <span class="keyword">PRIMARY</span> KEY (`id`)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>utf8;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> `Persons` (`LastName`, `FirstName`, `Address`, `City`)</span><br><span class="line"><span class="keyword">VALUES</span></span><br><span class="line">(<span class="string">&#x27;Adams&#x27;</span>, <span class="string">&#x27;John&#x27;</span>, <span class="string">&#x27;Oxford Street&#x27;</span>, <span class="string">&#x27;London&#x27;</span>),</span><br><span class="line">(<span class="string">&#x27;Bush&#x27;</span>, <span class="string">&#x27;George&#x27;</span>, <span class="string">&#x27;Fifth Avenue&#x27;</span>, <span class="string">&#x27;New York&#x27;</span>),</span><br><span class="line">(<span class="string">&#x27;Carter&#x27;</span>, <span class="string">&#x27;Thomas&#x27;</span>, <span class="string">&#x27;Changan Street&#x27;</span>, <span class="string">&#x27;Beijing&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> `Orders` (`OrderNo`, `Pid`)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="number">77895</span>, <span class="number">3</span>), (<span class="number">44678</span>, <span class="number">3</span>), (<span class="number">22456</span>, <span class="number">1</span>), (<span class="number">24562</span>, <span class="number">1</span>), (<span class="number">34764</span>, <span class="number">65</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>Persons表<br><img src="/images/mysql/02.jpg"></p>
+<p>Orders表<br><img src="/images/mysql/03.jpg"></p>
+<p><strong>ok，准备工作完成，现在来说说mysql中的四中三类连接</strong></p>
+<h1 id="内连接-图-3"><a href="#内连接-图-3" class="headerlink" title="内连接(图-3)"></a>内连接(图-3)</h1><p>内连接在SQL中是<code>JOIN</code>|<code>INNER JOIN</code>; <code>INNER JOIN</code> 与 <code>JOIN</code> 的查询结果都是相同的，也就是说两个的作用都是一样的。<br>内连接查询返回两个表中在<code>ON</code>后面指定的列条件相同时的行;<br>例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> Persons.id, Persons.LastName, Persons.FirstName, Orders.id,Orders.OrderNo,Orders.Pid</span><br><span class="line"><span class="keyword">FROM</span> Persons</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> Orders</span><br><span class="line"><span class="keyword">ON</span> Persons.id <span class="operator">=</span> Orders.Pid</span><br></pre></td></tr></table></figure>
+<p>查询的结果：<br><img src="/images/mysql/04.jpg"><br>或者</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> Persons.id, Persons.LastName, Persons.FirstName, Orders.id,Orders.OrderNo,Orders.Pid</span><br><span class="line"><span class="keyword">FROM</span> Persons</span><br><span class="line"><span class="keyword">JOIN</span> Orders</span><br><span class="line"><span class="keyword">ON</span> Persons.id <span class="operator">=</span> Orders.Pid</span><br></pre></td></tr></table></figure>
+<p>结果：<br><img src="/images/mysql/05.jpg"></p>
+<p><strong>从这结果中可以看到：</strong></p>
+<ul>
+<li>首先，我们发现 <code>INNER JOIN</code> 和 <code>JOIN</code> 的查询结果确实是一致的；</li>
+<li>其次，<code>INNER JOIN</code> 和 <code>JOIN</code> 关键字在表中存在至少一个匹配时返回行。如果 <code>Persons</code> 中的行在 <code>Orders</code> 中没有匹配，就不属于内连接查询的结果，就不会列出相应的<code>Persons</code>或<code>Orders</code>这些行。简言之，查询的结果集是符合<code>ON</code>之后条件时的所有行，A表中的某一条记录对应B表中的多个记录会以重复的方式对应不同的多条B表记录出现在结果集中，B表中的一条记录对应A表中的多条记录时会以多条A表记录对应相同B表记录的方式出现在结果集中。</li>
+</ul>
+<h1 id="外连接-图-1、2"><a href="#外连接-图-1、2" class="headerlink" title="外连接(图-1、2)"></a>外连接(图-1、2)</h1><p>外连接分为 <strong>左外连接</strong><code>LEFT JOIN</code> 和 <strong>右外连接</strong><code>RIGHT JOIN</code>。虽然是两种写法，但他们之间是可以转换的，其实是互相的变形。</p>
+<ul>
+<li><code>LEFT JOIN</code> 关键字会从左表 (table_name1) 那里返回所有的行，即使在右表 (table_name2) 中没有匹配的行。<em><strong>LEFT JOIN 也写作 LEFT OUTER JOIN</strong></em></li>
+<li><code>RIGHT JOIN</code> 关键字会右表 (table_name2) 那里返回所有的行，即使在左表 (table_name1) 中没有匹配的行。<em><strong>RIGHT JOIN 也写作 RIGHT OUTER JOIN</strong></em></li>
+</ul>
+<p>我们以左外连接示例说明，然后写一个查询结果一样的右外连接说明他两确实是可以转化的；左外连接和右外连接关键的区别实在 <strong>主表的确定</strong>:</p>
+<ul>
+<li>左外连接是以 <code>LEFT JOIN</code> 左侧也就是前面的表(FROM后面的跟的表)作为主表，返回所有左侧表中的记录，右侧表中不存在匹配时在相应字段不<code>NULL</code>。 左侧表可能在右侧表中对应多条记录，那么就在结果集中以相同左侧表记录不同右侧表记录多条显示在结果集中;也可能左侧表记录在右侧没有一条匹配，那么就会返回所有左侧表记录，右侧表的字段都以<code>NULL</code>替代；所以在没有<code>WHERE</code>条件时，mysql查询的结果集或者说临时表的记录一定是大于或等于左侧表记录数的。</li>
+<li>右外连接是以 <code>RIGHT JOIN</code> 右侧也就是后面的表(RIGHT JOIN后面的跟的表)作为主表，返回所有右侧表中的记录，左侧表中不存在匹配时在相应字段不<code>NULL</code>。</li>
+</ul>
+<p>左外连接：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> Persons.id, Persons.LastName, Persons.FirstName, Orders.id,Orders.OrderNo,Orders.Pid</span><br><span class="line"><span class="keyword">FROM</span> Persons</span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> Orders</span><br><span class="line"><span class="keyword">ON</span> Persons.id <span class="operator">=</span> Orders.Pid</span><br></pre></td></tr></table></figure>
+<p>结果：<br><img src="/images/mysql/06.jpg"></p>
+<p>右外连接：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> Persons.id, Persons.LastName, Persons.FirstName, Orders.id,Orders.OrderNo,Orders.Pid</span><br><span class="line"><span class="keyword">FROM</span> Persons</span><br><span class="line"><span class="keyword">RIGHT</span> <span class="keyword">JOIN</span> Orders</span><br><span class="line"><span class="keyword">ON</span> Persons.id <span class="operator">=</span> Orders.Pid</span><br></pre></td></tr></table></figure>
+<p>结果：<br><img src="/images/mysql/07.jpg"></p>
+<p><strong>现在我们对上面的左外连接做一个相同结果的右外连接转化</strong><br>右外连接：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> Persons.id, Persons.LastName, Persons.FirstName, Orders.id,Orders.OrderNo,Orders.Pid</span><br><span class="line"><span class="keyword">FROM</span> Orders</span><br><span class="line"><span class="keyword">RIGHT</span> <span class="keyword">JOIN</span> Persons</span><br><span class="line"><span class="keyword">ON</span> Persons.id <span class="operator">=</span> Orders.Pid</span><br></pre></td></tr></table></figure>
+<p>结果：<br><img src="/images/mysql/08.jpg"></p>
+<p>结果是不是和上面的左外连接一样啊！仔细理解就会发现：<code>Persons</code>对<code>Orders</code> 的左外连接 其实就相当于 <code>Orders</code>对<code>Persons</code> 的右外连接；两者的主表都是<code>Persons</code>表，所以转换的关键是保证左外连接和右外连接的主表是相同的即可。</p>
+<h1 id="全连接-图-4"><a href="#全连接-图-4" class="headerlink" title="全连接(图-4)"></a>全连接(图-4)</h1><p>首先注意：<strong>mysql并不支持全连接</strong>，但是有相应的替代策略：利用<code>UNION</code>联合查询，下面给出mysql关于连接查询的参考资料：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://dev.mysql.com/doc/refman/5.7/en/select.html">14.2.9 SELECT Syntax</a></li>
+<li><a target="_blank" rel="noopener" href="http://dev.mysql.com/doc/refman/5.7/en/join.html">14.2.9.2 JOIN Syntax</a></li>
+</ul>
+<p>虽然mysql不支持，但还是说明一下<code>FULL JOIN</code>：<br><code>FULL JOIN</code> 全连接会从左表 (Persons) 和右表 (Orders) 那里返回所有的行。如果 <code>Persons</code> 中的行在表 <code>Orders</code> 中没有匹配，或者如果 <code>Orders</code> 中的行在表 <code>Persons</code> 中没有匹配，这些行同样会列出,不存在的字段会以<code>NULL</code>补充。<br>也就是说当连接的两个表的记录匹配项时，它们会组合成结果集中的一条记录，如果两张表中的某些记录在对方表中都不存在匹配时，它们也会被查询出来放大结果集中，只是在这些记录的另一个表中的字段信息是<code>NULL</code>补充的。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> Persons.id, Persons.LastName, Persons.FirstName, Orders.id,Orders.OrderNo,Orders.Pid</span><br><span class="line"><span class="keyword">FROM</span> Persons</span><br><span class="line"><span class="keyword">RIGHT</span> <span class="keyword">JOIN</span> Orders</span><br><span class="line"><span class="keyword">ON</span> Persons.id <span class="operator">=</span> Orders.Pid</span><br></pre></td></tr></table></figure>
+
+<p>ok，mysql关于FULL JOIN的替代策略：就是左外连接和右外连接的联合查询</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> Persons</span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> Orders <span class="keyword">ON</span> Persons.id <span class="operator">=</span> Orders.Pid</span><br><span class="line"><span class="keyword">UNION</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> Persons</span><br><span class="line"><span class="keyword">RIGHT</span> <span class="keyword">JOIN</span> Orders <span class="keyword">ON</span> Persons.id <span class="operator">=</span> Orders.Pid</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 模式就是这样</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t1</span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> t2 <span class="keyword">ON</span> t1.id <span class="operator">=</span> t2.id</span><br><span class="line"><span class="keyword">UNION</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t1</span><br><span class="line"><span class="keyword">RIGHT</span> <span class="keyword">JOIN</span> t2 <span class="keyword">ON</span> t1.id <span class="operator">=</span> t2.id</span><br></pre></td></tr></table></figure>
+<p>结果：<br><img src="/images/mysql/09.jpg"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
+<li>对于三类连接查询，MySQL只支持其中的：<strong>内连接</strong> 和 <strong>外连接</strong></li>
+<li>对于所有的连接类型而言，就是将符合关键字 <code>ON</code> 后条件匹配的对应组合都成为一条记录出现在结果集中，对于两个表中的某条记录可能存在：<strong>一对多</strong> 或者 <strong>多对一</strong> 的情况会在结果集中形成多条记录，只是另外一个表中查询的字段信息相同而已；千万不要误以为：左外连接查询到的记录数是和左表的记录数一样，对于其他连接一样，不能形成这个误区。</li>
+<li>对于内连接查询到的是一个符合 <code>ON</code> 条件匹配的在两个表中都存在记录的结果集</li>
+<li>对于外连接，例如左外连接查询到的是一个包含所有左表记录且在右表符合<code>ON</code>匹配时的右表信息的结果集，如果左表的某条记录和右表的多条记录匹配，结果集中就存在同一个左表记录对应多个右表记录的多条记录，此时的结果集记录数是大于左表的记录数的。对于右外连接来说同理。</li>
+<li>对于全连接，就是把左表右表都包含在内，如果符合<code>ON</code>条件的匹配在结果集中形成一条记录，如果对左表或者右表中的某一条记录在对方表中不存在<code>ON</code>匹配时，就以单独一条记录出现在结果集中，对方表不存在的信息以<code>NULL</code>补充。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/join/" rel="tag"># join</a>
+              <a href="/tags/MySQL/" rel="tag"># MySQL</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/11/11/OSC%E5%92%8CGitHub%E4%B8%AD%E9%A1%B9%E7%9B%AE%E5%85%AC%E9%92%A5%E5%92%8C%E7%AE%A1%E7%90%86%E5%85%AC%E9%92%A5.html" rel="prev" title="OSC和GitHub中项目公钥和管理公钥">
+      <i class="fa fa-chevron-left"></i> OSC和GitHub中项目公钥和管理公钥
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/12/19/Thinphp%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-Exception%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86.html" rel="next" title="Thinphp源码分析-Exception异常处理">
+      Thinphp源码分析-Exception异常处理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%8A%E5%9B%BE"><span class="nav-number">1.</span> <span class="nav-text">上图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87"><span class="nav-number">2.</span> <span class="nav-text">数据准备</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E8%BF%9E%E6%8E%A5-%E5%9B%BE-3"><span class="nav-number">3.</span> <span class="nav-text">内连接(图-3)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%96%E8%BF%9E%E6%8E%A5-%E5%9B%BE-1%E3%80%812"><span class="nav-number">4.</span> <span class="nav-text">外连接(图-1、2)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%A8%E8%BF%9E%E6%8E%A5-%E5%9B%BE-4"><span class="nav-number">5.</span> <span class="nav-text">全连接(图-4)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="虢國技酱"
+      src="/images/wangxb.png">
+  <p class="site-author-name" itemprop="name">虢國技酱</p>
+  <div class="site-description" itemprop="description">静心·积累·坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wxb" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wxb" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wxb0328@icloud.com" title="E-Mail → mailto:wxb0328@icloud.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ramboxbwang" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ramboxbwang" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/wangxb" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;wangxb" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">虢國技酱</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a0ce361efbb68e2c2be6',
+      clientSecret: '272365b7568ffbb484cf975261be83fe79a02061',
+      repo        : 'wxb.github.io',
+      owner       : 'wxb',
+      admin       : ['wxb'],
+      id          : '3d5a2db5bc8ab6b8ed92cc4dccde39d3',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

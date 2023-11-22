@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+<!-- Referrer Policy调整致不蒜子单页面统计出错:https://senorui.top/posts/c33f.html -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wxb.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="PSR-规范希望通过制定一系列规范化PHP代码的规则，以减少在浏览不同作者的代码时，因代码风格的不同而造成不便。 当多名程序员在多个项目中合作时，就需要一个共同的编码规范， 而本文中的风格规范源自于多个不同项目代码风格的共同特性， 因此，本规范的价值在于我们都遵循这个编码风格，而不是在于它本身。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHP编码规范 - PSR">
+<meta property="og:url" content="http://wxb.github.io/2016/06/28/PHP%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83-PSR.html">
+<meta property="og:site_name" content="虢國書館">
+<meta property="og:description" content="PSR-规范希望通过制定一系列规范化PHP代码的规则，以减少在浏览不同作者的代码时，因代码风格的不同而造成不便。 当多名程序员在多个项目中合作时，就需要一个共同的编码规范， 而本文中的风格规范源自于多个不同项目代码风格的共同特性， 因此，本规范的价值在于我们都遵循这个编码风格，而不是在于它本身。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-06-28T03:48:50.000Z">
+<meta property="article:modified_time" content="2023-11-22T02:35:30.003Z">
+<meta property="article:author" content="虢國技酱">
+<meta property="article:tag" content="PSR">
+<meta property="article:tag" content="编码规范">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://wxb.github.io/2016/06/28/PHP%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83-PSR.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>PHP编码规范 - PSR | 虢國書館</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">虢國書館</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">静心·积累·坚持</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://wxb.github.io/2016/06/28/PHP%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83-PSR.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/wangxb.png">
+      <meta itemprop="name" content="虢國技酱">
+      <meta itemprop="description" content="静心·积累·坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="虢國書館">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          PHP编码规范 - PSR
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-06-28 11:48:50" itemprop="dateCreated datePublished" datetime="2016-06-28T11:48:50+08:00">2016-06-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-22 10:35:30" itemprop="dateModified" datetime="2023-11-22T10:35:30+08:00">2023-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PHP/" itemprop="url" rel="index"><span itemprop="name">PHP</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>PSR-规范希望通过制定一系列规范化PHP代码的规则，以减少在浏览不同作者的代码时，因代码风格的不同而造成不便。</p>
+<p>当多名程序员在多个项目中合作时，就需要一个共同的编码规范， 而本文中的风格规范源自于多个不同项目代码风格的共同特性， 因此，本规范的价值在于我们都遵循这个编码风格，而不是在于它本身。</p>
+<span id="more"></span>
+
+<p>PHP编码规范 - PSR</p>
+<p>本文档是PHP互操作性框架制定小组（[PHP-FIG][] :PHP Framework Interoperability Group）制定的PHP编码规范（[PSR][]:Proposing a Standards Recommendation）</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.php-fig.org/psr/">PHP-FIG官方</a> | <a target="_blank" rel="noopener" href="https://github.com/php-fig">GitHub</a></li>
+<li>本文档摘自-<a target="_blank" rel="noopener" href="https://github.com/PizzaLiu/PHP-FIG">PHP-FIG PSR中文版</a></li>
+</ul>
+<hr>
+<h1 id="PSR-0-自动加载规范"><a href="#PSR-0-自动加载规范" class="headerlink" title="PSR-0:自动加载规范"></a>PSR-0:自动加载规范</h1><p>&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</p>
+<blockquote>
+<p><strong>此规范已被弃用</strong> - 本规范已于2014年10月21日被标记为弃用，目前最新的替代规范为 <a target="_blank" rel="noopener" href="https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md">PSR-4</a> 。</p>
+</blockquote>
+<p>本文是为<code>自动加载器（autoloader）</code>实现通用自动加载，所需要遵循的编码规范。</p>
+<p>规范说明</p>
+<hr>
+<ul>
+<li>一个标准的 命名空间(namespace) 与 类(class) 名称的定义必须符合以下结构：<code>\&lt;Vendor Name&gt;\(&lt;Namespace&gt;\)*&lt;Class Name&gt;</code>；</li>
+<li>其中<code>Vendor Name</code>为每个命名空间都必须要有的一个顶级命名空间名；</li>
+<li>需要的话，每个命名空间下可以拥有多个子命名空间；</li>
+<li>当根据完整的命名空间名从文件系统中载入类文件时，每个命名空间之间的分隔符都会被转换成文件夹路径分隔符；</li>
+<li>类名称中的每个 <code>_</code> 字符也会被转换成文件夹路径分隔符，而命名空间中的 <code>_</code> 字符则是无特殊含义的。</li>
+<li>当从文件系统中载入标准的命名空间或类时，都将添加 <code>.php</code> 为目标文件后缀；</li>
+<li><code>组织名称(Vendor Name)</code>、<code>命名空间(Namespace)</code> 以及 <code>类的名称(Class Name)</code> 可由任意大小写字母组成。</li>
+</ul>
+<p>范例</p>
+<hr>
+<ul>
+<li><code>\Doctrine\Common\IsolatedClassLoader</code> &#x3D;&gt; <code>/path/to/project/lib/vendor/Doctrine/Common/IsolatedClassLoader.php</code></li>
+<li><code>\Symfony\Core\Request</code> &#x3D;&gt; <code>/path/to/project/lib/vendor/Symfony/Core/Request.php</code></li>
+<li><code>\Zend\Acl</code> &#x3D;&gt; <code>/path/to/project/lib/vendor/Zend/Acl.php</code></li>
+<li><code>\Zend\Mail\Message</code> &#x3D;&gt; <code>/path/to/project/lib/vendor/Zend/Mail/Message.php</code></li>
+</ul>
+<p>命名空间以及类名称中的下划线</p>
+<hr>
+<ul>
+<li><code>\namespace\package\Class_Name</code> &#x3D;&gt; <code>/path/to/project/lib/vendor/namespace/package/Class/Name.php</code></li>
+<li><code>\namespace\package_name\Class_Name</code> &#x3D;&gt; <code>/path/to/project/lib/vendor/namespace/package_name/Class/Name.php</code></li>
+</ul>
+<p>以上是使用通用自动加载必须遵循的最低规范标准， 可通过以下的示例函数 SplClassLoader 载入 PHP 5.3 的类文件，来验证你所写的命名空间以及类是否符合以上规范。</p>
+<p>实例</p>
+<hr>
+<p>以下示例函数为本规范的一个简单实现。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">autoload</span>(<span class="params"><span class="variable">$className</span></span>)</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="variable">$className</span> = <span class="title function_ invoke__">ltrim</span>(<span class="variable">$className</span>, <span class="string">&#x27;\\&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="variable">$fileName</span>  = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="variable">$namespace</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$lastNsPos</span> = <span class="title function_ invoke__">strrpos</span>(<span class="variable">$className</span>, <span class="string">&#x27;\\&#x27;</span>)) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="variable">$namespace</span> = <span class="title function_ invoke__">substr</span>(<span class="variable">$className</span>, <span class="number">0</span>, <span class="variable">$lastNsPos</span>);</span><br><span class="line"></span><br><span class="line">        <span class="variable">$className</span> = <span class="title function_ invoke__">substr</span>(<span class="variable">$className</span>, <span class="variable">$lastNsPos</span> + <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        <span class="variable">$fileName</span>  = <span class="title function_ invoke__">str_replace</span>(<span class="string">&#x27;\\&#x27;</span>, DIRECTORY_SEPARATOR, <span class="variable">$namespace</span>) . DIRECTORY_SEPARATOR;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable">$fileName</span> .= <span class="title function_ invoke__">str_replace</span>(<span class="string">&#x27;_&#x27;</span>, DIRECTORY_SEPARATOR, <span class="variable">$className</span>) . <span class="string">&#x27;.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">require</span> <span class="variable">$fileName</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>SplClassLoader 实例</p>
+<hr>
+<p>以下的 gist 是 一个 SplClassLoader 类文件的实例，如果你遵循了以上规范，可以把它用来载入你的类文件。 这也是目前 PHP 5.3 建议的类文件载入方式。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://gist.github.com/221634">http://gist.github.com/221634</a></li>
+</ul>
+<hr>
+<h1 id="PSR-1-基本代码规范"><a href="#PSR-1-基本代码规范" class="headerlink" title="PSR-1:基本代码规范"></a>PSR-1:基本代码规范</h1><p>&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</p>
+<p>本篇规范制定了代码基本元素的相关标准，<br>以确保共享的PHP代码间具有较高程度的技术互通性。</p>
+<p>关键词 “必须”(“MUST”)、“一定不可&#x2F;一定不能”(“MUST NOT”)、“需要”(“REQUIRED”)、<br>“将会”(“SHALL”)、“不会”(“SHALL NOT”)、“应该”(“SHOULD”)、“不该”(“SHOULD NOT”)、<br>“推荐”(“RECOMMENDED”)、“可以”(“MAY”)和”可选“(“OPTIONAL”)的详细描述可参见 <a target="_blank" rel="noopener" href="http://www.ietf.org/rfc/rfc2119.txt">RFC 2119</a> 。</p>
+<ol>
+<li>概览</li>
+</ol>
+<hr>
+<ul>
+<li>PHP代码文件<strong>必须</strong>以 <code>&lt;?php</code> 或 <code>&lt;?=</code> 标签开始；</li>
+<li>PHP代码文件<strong>必须</strong>以 <code>不带BOM的 UTF-8</code> 编码；</li>
+<li>PHP代码中<strong>应该</strong>只定义类、函数、常量等声明，或其他会产生 <code>从属效应</code> 的操作（如：生成文件输出以及修改.ini配置文件等），二者只能选其一；</li>
+<li>命名空间以及类<strong>必须</strong>符合 PSR 的自动加载规范：<a target="_blank" rel="noopener" href="https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md">PSR-4</a>；</li>
+<li>类的命名<strong>必须</strong>遵循 <code>StudlyCaps</code> 大写开头的驼峰命名规范；</li>
+<li>类中的常量所有字母都<strong>必须</strong>大写，单词间用下划线分隔；</li>
+<li>方法名称<strong>必须</strong>符合 <code>camelCase</code> 式的小写开头驼峰命名规范。</li>
+</ul>
+<ol start="2">
+<li>文件</li>
+</ol>
+<hr>
+<h3 id="2-1-PHP标签"><a href="#2-1-PHP标签" class="headerlink" title="2.1. PHP标签"></a>2.1. PHP标签</h3><p>PHP代码<strong>必须</strong>使用 <code>&lt;?php ?&gt;</code> 长标签 或 <code>&lt;?= ?&gt;</code> 短输出标签；<br><strong>一定不可</strong>使用其它自定义标签。</p>
+<h3 id="2-2-字符编码"><a href="#2-2-字符编码" class="headerlink" title="2.2. 字符编码"></a>2.2. 字符编码</h3><p>PHP代码<strong>必须</strong>且只可使用<code>不带BOM的UTF-8</code>编码。</p>
+<h3 id="2-3-从属效应（副作用）"><a href="#2-3-从属效应（副作用）" class="headerlink" title="2.3. 从属效应（副作用）"></a>2.3. 从属效应（副作用）</h3><p>一份PHP文件中<strong>应该</strong>要不就只定义新的声明，如类、函数或常量等不产生从属效应的操作，要不就只有会产生从属效应的逻辑操作，但<strong>不该</strong>同时具有两者。</p>
+<p>“从属效应”(side effects)一词的意思是，仅仅通过包含文件，不直接声明类、<br>函数和常量等，而执行的逻辑操作。</p>
+<p>“从属效应”包含却不仅限于：生成输出、直接的 <code>require</code> 或 <code>include</code>、连接外部服务、修改 ini 配置、抛出错误或异常、修改全局或静态变量、读或写文件等。</p>
+<p>以下是一个错误的例子，一份包含声明以及产生从属效应的代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// 从属效应：修改 ini 配置</span></span><br><span class="line"><span class="title function_ invoke__">ini_set</span>(<span class="string">&#x27;error_reporting&#x27;</span>, E_ALL);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 从属效应：引入文件</span></span><br><span class="line"><span class="keyword">include</span> <span class="string">&quot;file.php&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 从属效应：生成输出</span></span><br><span class="line"><span class="keyword">echo</span> <span class="string">&quot;&lt;html&gt;\n&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 声明函数</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 函数主体部分</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面是一个范例，一份只包含声明不产生从属效应的代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// 声明函数</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 函数主体部分</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 条件声明**不**属于从属效应</span></span><br><span class="line"><span class="keyword">if</span> (! <span class="title function_ invoke__">function_exists</span>(<span class="string">&#x27;bar&#x27;</span>)) &#123;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// 函数主体部分</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<ol start="3">
+<li>命名空间和类</li>
+</ol>
+<hr>
+<p>命名空间以及类的命名必须遵循 <a target="_blank" rel="noopener" href="https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md">PSR-4</a>。</p>
+<p>根据规范，每个类都独立为一个文件，且命名空间至少有一个层次：顶级的组织名称（vendor name）。</p>
+<p>类的命名必须 遵循 <code>StudlyCaps</code> 大写开头的驼峰命名规范。</p>
+<p>PHP 5.3及以后版本的代码<strong>必须</strong>使用正式的命名空间。</p>
+<p>例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// PHP 5.3及以后版本的写法</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Model</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Foo</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>5.2.x及之前的版本<strong>应该</strong>使用伪命名空间的写法，约定俗成使用顶级的组织名称（vendor name）如 <code>Vendor_</code> 为类前缀。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// 5.2.x及之前版本的写法</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Vendor_Model_Foo</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>类的常量、属性和方法</li>
+</ol>
+<hr>
+<p>此处的“类”指代所有的类、接口以及可复用代码块（traits）</p>
+<h3 id="4-1-常量"><a href="#4-1-常量" class="headerlink" title="4.1. 常量"></a>4.1. 常量</h3><p>类的常量中所有字母都<strong>必须</strong>大写，词间以下划线分隔。<br>参照以下代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Model</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Foo</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">VERSION</span> = <span class="string">&#x27;1.0&#x27;</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">DATE_APPROVED</span> = <span class="string">&#x27;2012-06-01&#x27;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-属性"><a href="#4-2-属性" class="headerlink" title="4.2. 属性"></a>4.2. 属性</h3><p>类的属性命名可以遵循 大写开头的驼峰式 (<code>$StudlyCaps</code>)、小写开头的驼峰式 (<code>$camelCase</code>) 又或者是 下划线分隔式 (<code>$under_score</code>)，本规范不做强制要求，但无论遵循哪种命名方式，都<strong>应该</strong>在一定的范围内保持一致。这个范围可以是整个团队、整个包、整个类或整个方法。</p>
+<h3 id="4-3-方法"><a href="#4-3-方法" class="headerlink" title="4.3. 方法"></a>4.3. 方法</h3><p>方法名称<strong>必须</strong>符合 <code>camelCase()</code> 式的小写开头驼峰命名规范。</p>
+<hr>
+<h1 id="PSR-2-代码风格规范"><a href="#PSR-2-代码风格规范" class="headerlink" title="PSR-2:代码风格规范"></a>PSR-2:代码风格规范</h1><p>&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</p>
+<p>本篇规范是 <a target="_blank" rel="noopener" href="https://github.com/PizzaLiu/PHP-FIG/blob/master/PSR-1-basic-coding-standard-cn.md">PSR-1</a> 基本代码规范的继承与扩展。</p>
+<p>本规范希望通过制定一系列规范化PHP代码的规则，以减少在浏览不同作者的代码时，因代码风格的不同而造成不便。</p>
+<p>当多名程序员在多个项目中合作时，就需要一个共同的编码规范，<br>而本文中的风格规范源自于多个不同项目代码风格的共同特性，<br>因此，本规范的价值在于我们都遵循这个编码风格，而不是在于它本身。</p>
+<p>关键词 “必须”(“MUST”)、“一定不可&#x2F;一定不能”(“MUST NOT”)、“需要”(“REQUIRED”)、<br>“将会”(“SHALL”)、“不会”(“SHALL NOT”)、“应该”(“SHOULD”)、“不该”(“SHOULD NOT”)、<br>“推荐”(“RECOMMENDED”)、“可以”(“MAY”)和”可选“(“OPTIONAL”)的详细描述可参见 <a target="_blank" rel="noopener" href="http://www.ietf.org/rfc/rfc2119.txt">RFC 2119</a> 。</p>
+<ol>
+<li>概览</li>
+</ol>
+<hr>
+<ul>
+<li>代码<strong>必须</strong>遵循 <a target="_blank" rel="noopener" href="https://github.com/PizzaLiu/PHP-FIG/blob/master/PSR-1-basic-coding-standard-cn.md">PSR-1</a> 中的编码规范 。</li>
+<li>代码<strong>必须</strong>使用4个空格符而不是 tab键 进行缩进。</li>
+<li>每行的字符数<strong>应该</strong>软性保持在80个之内， 理论上<strong>一定不可</strong>多于120个， 但<strong>一定不能</strong>有硬性限制。</li>
+<li>每个 <code>namespace</code> 命名空间声明语句和 <code>use</code> 声明语句块后面，<strong>必须</strong>插入一个空白行。</li>
+<li>类的开始花括号(<code>&#123;</code>)<strong>必须</strong>写在函数声明后自成一行，结束花括号(<code>&#125;</code>)也<strong>必须</strong>写在函数主体后自成一行。</li>
+<li>方法的开始花括号(<code>&#123;</code>)<strong>必须</strong>写在函数声明后自成一行，结束花括号(<code>&#125;</code>)也<strong>必须</strong>写在函数主体后自成一行。</li>
+<li>类的属性和方法<strong>必须</strong>添加访问修饰符（<code>private</code>、<code>protected</code> 以及 <code>public</code>）， <code>abstract</code> 以及 <code>final</code> <strong>必须</strong>声明在访问修饰符之前，而 <code>static</code> <strong>必须</strong>声明在访问修饰符之后。</li>
+<li>控制结构的关键字后<strong>必须</strong>要有一个空格符，而调用方法或函数时则<strong>一定不能</strong>有。</li>
+<li>控制结构的开始花括号(<code>&#123;</code>)<strong>必须</strong>写在声明的同一行，而结束花括号(<code>&#125;</code>)<strong>必须</strong>写在主体后自成一行。</li>
+<li>控制结构的开始左括号后和结束右括号前，都<strong>一定不能</strong>有空格符。</li>
+</ul>
+<h3 id="1-1-例子"><a href="#1-1-例子" class="headerlink" title="1.1. 例子"></a>1.1. 例子</h3><p>以下例子程序简单地展示了以上大部分规范：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Package</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="title">FooInterface</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">BarClass</span> <span class="keyword">as</span> <span class="title">Bar</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">OtherVendor</span>\<span class="title">OtherPackage</span>\<span class="title">BazClass</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Foo</span> <span class="keyword">extends</span> <span class="title">Bar</span> <span class="keyword">implements</span> <span class="title">FooInterface</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">sampleFunction</span>(<span class="params"><span class="variable">$a</span>, <span class="variable">$b</span> = <span class="literal">null</span></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="variable">$a</span> === <span class="variable">$b</span>) &#123;</span><br><span class="line">            <span class="title function_ invoke__">bar</span>();</span><br><span class="line">        &#125; <span class="keyword">elseif</span> (<span class="variable">$a</span> &gt; <span class="variable">$b</span>) &#123;</span><br><span class="line">            <span class="variable">$foo</span>-&gt;<span class="title function_ invoke__">bar</span>(<span class="variable">$arg1</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="title class_">BazClass</span>::<span class="title function_ invoke__">bar</span>(<span class="variable">$arg2</span>, <span class="variable">$arg3</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">public</span> <span class="built_in">static</span> <span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// method body</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>通则</li>
+</ol>
+<hr>
+<h3 id="2-1-基本编码准则"><a href="#2-1-基本编码准则" class="headerlink" title="2.1 基本编码准则"></a>2.1 基本编码准则</h3><p>代码<strong>必须</strong>符合 <a target="_blank" rel="noopener" href="https://github.com/PizzaLiu/PHP-FIG/blob/master/PSR-1-basic-coding-standard-cn.md">PSR-1</a> 中的所有规范。</p>
+<h3 id="2-2-文件"><a href="#2-2-文件" class="headerlink" title="2.2 文件"></a>2.2 文件</h3><p>所有PHP文件<strong>必须</strong>使用<code>Unix LF (linefeed)</code>作为行的结束符。</p>
+<p>所有PHP文件<strong>必须</strong>以一个空白行作为结束。</p>
+<p>纯PHP代码文件<strong>必须</strong>省略最后的 <code>?&gt;</code> 结束标签。</p>
+<h3 id="2-3-行"><a href="#2-3-行" class="headerlink" title="2.3. 行"></a>2.3. 行</h3><p>行的长度<strong>一定不能</strong>有硬性的约束。</p>
+<p>软性的长度约束<strong>一定</strong>要限制在120个字符以内，若超过此长度，带代码规范检查的编辑器<strong>一定</strong>要发出警告，不过<strong>一定不可</strong>发出错误提示。</p>
+<p>每行<strong>不应该</strong>多于80个字符，大于80字符的行<strong>应该</strong>折成多行。</p>
+<p>非空行后<strong>一定不能</strong>有多余的空格符。</p>
+<p>空行<strong>可以</strong>使得阅读代码更加方便以及有助于代码的分块。</p>
+<p>每行<strong>一定不能</strong>存在多于一条语句。</p>
+<h3 id="2-4-缩进"><a href="#2-4-缩进" class="headerlink" title="2.4. 缩进"></a>2.4. 缩进</h3><p>代码<strong>必须</strong>使用4个空格符的缩进，<strong>一定不能</strong>用 tab键 。</p>
+<blockquote>
+<p>备注: 使用空格而不是tab键缩进的好处在于，<br>避免在比较代码差异、打补丁、重阅代码以及注释时产生混淆。<br>并且，使用空格缩进，让对齐变得更方便。</p>
+</blockquote>
+<h3 id="2-5-关键字-以及-True-False-Null"><a href="#2-5-关键字-以及-True-False-Null" class="headerlink" title="2.5. 关键字 以及 True&#x2F;False&#x2F;Null"></a>2.5. 关键字 以及 True&#x2F;False&#x2F;Null</h3><p>PHP所有 <a target="_blank" rel="noopener" href="http://php.net/manual/en/reserved.keywords.php">关键字</a><strong>必须</strong>全部小写。</p>
+<p>常量 <code>true</code> 、<code>false</code> 和 <code>null</code> 也<strong>必须</strong>全部小写。</p>
+<ol start="3">
+<li>namespace 以及 use 声明</li>
+</ol>
+<hr>
+<p><code>namespace</code> 声明后 必须 插入一个空白行。</p>
+<p>所有 <code>use</code> 必须 在 <code>namespace</code> 后声明。</p>
+<p>每条 <code>use</code> 声明语句 必须 只有一个 <code>use</code> 关键词。</p>
+<p><code>use</code> 声明语句块后 必须 要有一个空白行。</p>
+<p>例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Package</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="title">FooClass</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">BarClass</span> <span class="keyword">as</span> <span class="title">Bar</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">OtherVendor</span>\<span class="title">OtherPackage</span>\<span class="title">BazClass</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ... additional PHP code ...</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<ol start="4">
+<li>类、属性和方法</li>
+</ol>
+<hr>
+<p>此处的“类”泛指所有的class类、接口以及traits可复用代码块。</p>
+<h3 id="4-1-扩展与继承"><a href="#4-1-扩展与继承" class="headerlink" title="4.1. 扩展与继承"></a>4.1. 扩展与继承</h3><p>关键词 <code>extends</code> 和 <code>implements</code><strong>必须</strong>写在类名称的同一行。</p>
+<p>类的开始花括号<strong>必须</strong>独占一行，结束花括号也<strong>必须</strong>在类主体后独占一行。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Package</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="title">FooClass</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">BarClass</span> <span class="keyword">as</span> <span class="title">Bar</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">OtherVendor</span>\<span class="title">OtherPackage</span>\<span class="title">BazClass</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassName</span> <span class="keyword">extends</span> <span class="title">ParentClass</span> <span class="keyword">implements</span> \<span class="title">ArrayAccess</span>, \<span class="title">Countable</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="comment">// constants, properties, methods</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>implements</code> 的继承列表也<strong>可以</strong>分成多行，这样的话，每个继承接口名称都<strong>必须</strong>分开独立成行，包括第一个。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Package</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="title">FooClass</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">BarClass</span> <span class="keyword">as</span> <span class="title">Bar</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">OtherVendor</span>\<span class="title">OtherPackage</span>\<span class="title">BazClass</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassName</span> <span class="keyword">extends</span> <span class="title">ParentClass</span> <span class="keyword">implements</span></span></span><br><span class="line"><span class="class">    \<span class="title">ArrayAccess</span>,</span></span><br><span class="line"><span class="class">    \<span class="title">Countable</span>,</span></span><br><span class="line"><span class="class">    \<span class="title">Serializable</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="comment">// constants, properties, methods</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-属性-1"><a href="#4-2-属性-1" class="headerlink" title="4.2. 属性"></a>4.2. 属性</h3><p>每个属性都<strong>必须</strong>添加访问修饰符。</p>
+<p><strong>一定不可</strong>使用关键字 <code>var</code> 声明一个属性。</p>
+<p>每条语句<strong>一定不可</strong>定义超过一个属性。</p>
+<p><strong>不要</strong>使用下划线作为前缀，来区分属性是 protected 或 private。</p>
+<p>以下是属性声明的一个范例：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Package</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassName</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$foo</span> = <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-方法-1"><a href="#4-3-方法-1" class="headerlink" title="4.3. 方法"></a>4.3. 方法</h3><p>所有方法都<strong>必须</strong>添加访问修饰符。</p>
+<p><strong>不要</strong>使用下划线作为前缀，来区分方法是 protected 或 private。</p>
+<p>方法名称后<strong>一定不能</strong>有空格符，其开始花括号<strong>必须</strong>独占一行，结束花括号也<strong>必须</strong>在方法主体后单独成一行。参数左括号后和右括号前<strong>一定不能</strong>有空格。</p>
+<p>一个标准的方法声明可参照以下范例，留意其括号、逗号、空格以及花括号的位置。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Package</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassName</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">fooBarBaz</span>(<span class="params"><span class="variable">$arg1</span>, &amp;<span class="variable">$arg2</span>, <span class="variable">$arg3</span> = []</span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// method body</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">```    </span><br><span class="line"></span><br><span class="line"><span class="comment">### 4.4. 方法的参数</span></span><br><span class="line"></span><br><span class="line">参数列表中，每个逗号后面**必须**要有一个空格，而逗号前面**一定不能**有空格。</span><br><span class="line"></span><br><span class="line">有默认值的参数，**必须**放到参数列表的末尾。</span><br><span class="line"></span><br><span class="line">```php</span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Package</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassName</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"><span class="variable">$arg1</span>, &amp;<span class="variable">$arg2</span>, <span class="variable">$arg3</span> = []</span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// method body</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参数列表<strong>可以</strong>分列成多行，这样，包括第一个参数在内的每个参数都<strong>必须</strong>单独成行。</p>
+<p>拆分成多行的参数列表后，结束括号以及方法开始花括号 必须 写在同一行，中间用一个空格分隔。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Package</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassName</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">aVeryLongMethodName</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">        ClassTypeHint <span class="variable">$arg1</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        &amp;<span class="variable">$arg2</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="keyword">array</span> <span class="variable">$arg3</span> = []</span></span></span><br><span class="line"><span class="params"><span class="function">    </span>) </span>&#123;</span><br><span class="line">        <span class="comment">// method body</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-5-abstract-、-final-、-以及-static"><a href="#4-5-abstract-、-final-、-以及-static" class="headerlink" title="4.5. abstract 、 final 、 以及 static"></a>4.5. <code>abstract</code> 、 <code>final</code> 、 以及 <code>static</code></h3><p>需要添加 <code>abstract</code> 或 <code>final</code> 声明时， <strong>必须</strong>写在访问修饰符前，而 <code>static</code> 则<strong>必须</strong>写在其后。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Vendor</span>\<span class="title class_">Package</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassName</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> <span class="built_in">static</span> <span class="variable">$foo</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">zim</span>(<span class="params"></span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">public</span> <span class="built_in">static</span> <span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// method body</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-6-方法及函数调用"><a href="#4-6-方法及函数调用" class="headerlink" title="4.6. 方法及函数调用"></a>4.6. 方法及函数调用</h3><p>方法及函数调用时，方法名或函数名与参数左括号之间<strong>一定不能</strong>有空格，参数右括号前也 <strong>一定不能</strong>有空格。每个逗号前<strong>一定不能</strong>有空格，但其后<strong>必须</strong>有一个空格。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="title function_ invoke__">bar</span>();</span><br><span class="line"><span class="variable">$foo</span>-&gt;<span class="title function_ invoke__">bar</span>(<span class="variable">$arg1</span>);</span><br><span class="line"><span class="title class_">Foo</span>::<span class="title function_ invoke__">bar</span>(<span class="variable">$arg2</span>, <span class="variable">$arg3</span>);</span><br></pre></td></tr></table></figure>
+
+<p>参数<strong>可以</strong>分列成多行，此时包括第一个参数在内的每个参数都<strong>必须</strong>单独成行。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$foo</span>-&gt;<span class="title function_ invoke__">bar</span>(</span><br><span class="line">    <span class="variable">$longArgument</span>,</span><br><span class="line">    <span class="variable">$longerArgument</span>,</span><br><span class="line">    <span class="variable">$muchLongerArgument</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>控制结构</li>
+</ol>
+<hr>
+<p>控制结构的基本规范如下：</p>
+<ul>
+<li>控制结构关键词后<strong>必须</strong>有一个空格。</li>
+<li>左括号 <code>(</code> 后<strong>一定不能</strong>有空格。</li>
+<li>右括号 <code>)</code> 前也<strong>一定不</strong>能有空格。</li>
+<li>右括号 <code>)</code> 与开始花括号 <code>&#123;</code> 间<strong>一定</strong>有一个空格。</li>
+<li>结构体主体<strong>一定</strong>要有一次缩进。</li>
+<li>结束花括号 <code>&#125;</code> <strong>一定</strong>在结构体主体后单独成行。</li>
+</ul>
+<p>每个结构体的主体都<strong>必须</strong>被包含在成对的花括号之中，<br>这能让结构体更加结构话，以及减少加入新行时，出错的可能性。</p>
+<h3 id="5-1-if-、-elseif-和-else"><a href="#5-1-if-、-elseif-和-else" class="headerlink" title="5.1. if 、 elseif 和 else"></a>5.1. <code>if</code> 、 <code>elseif</code> 和 <code>else</code></h3><p>标准的 <code>if</code> 结构如下代码所示，留意 括号、空格以及花括号的位置，<br>注意 <code>else</code> 和 <code>elseif</code> 都与前面的结束花括号在同一行。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$expr1</span>) &#123;</span><br><span class="line">    <span class="comment">// if body</span></span><br><span class="line">&#125; <span class="keyword">elseif</span> (<span class="variable">$expr2</span>) &#123;</span><br><span class="line">    <span class="comment">// elseif body</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// else body;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>应该</strong>使用关键词 <code>elseif</code> 代替所有 <code>else if</code> ，以使得所有的控制关键字都像是单独的一个词。</p>
+<h3 id="5-2-switch-和-case"><a href="#5-2-switch-和-case" class="headerlink" title="5.2. switch 和 case"></a>5.2. <code>switch</code> 和 <code>case</code></h3><p>标准的 <code>switch</code> 结构如下代码所示，留意括号、空格以及花括号的位置。<br><code>case</code> 语句<strong>必须</strong>相对 <code>switch</code> 进行一次缩进，而 <code>break</code> 语句以及 <code>case</code> 内的其它语句都 必须 相对 <code>case</code> 进行一次缩进。<br>如果存在非空的 <code>case</code> 直穿语句，主体里必须有类似 <code>// no break</code> 的注释。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">switch</span> (<span class="variable">$expr</span>) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;First case, with a break&#x27;</span>;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;Second case, which falls through&#x27;</span>;</span><br><span class="line">        <span class="comment">// no break</span></span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">    <span class="keyword">case</span> <span class="number">4</span>:</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;Third case, return instead of break&#x27;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;Default case&#x27;</span>;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="5-3-while-和-do-while"><a href="#5-3-while-和-do-while" class="headerlink" title="5.3. while 和 do while"></a>5.3. <code>while</code> 和 <code>do while</code></h3><p>一个规范的 <code>while</code> 语句应该如下所示，注意其 括号、空格以及花括号的位置。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">while</span> (<span class="variable">$expr</span>) &#123;</span><br><span class="line">    <span class="comment">// structure body</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>标准的 <code>do while</code> 语句如下所示，同样的，注意其 括号、空格以及花括号的位置。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">do</span> &#123;</span><br><span class="line">    <span class="comment">// structure body;</span></span><br><span class="line">&#125; <span class="keyword">while</span> (<span class="variable">$expr</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-for"><a href="#5-4-for" class="headerlink" title="5.4. for"></a>5.4. <code>for</code></h3><p>标准的 <code>for</code> 语句如下所示，注意其 括号、空格以及花括号的位置。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">for</span> (<span class="variable">$i</span> = <span class="number">0</span>; <span class="variable">$i</span> &lt; <span class="number">10</span>; <span class="variable">$i</span>++) &#123;</span><br><span class="line">    <span class="comment">// for body</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-foreach"><a href="#5-5-foreach" class="headerlink" title="5.5. foreach"></a>5.5. <code>foreach</code></h3><p>标准的 <code>foreach</code> 语句如下所示，注意其 括号、空格以及花括号的位置。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">foreach</span> (<span class="variable">$iterable</span> <span class="keyword">as</span> <span class="variable">$key</span> =&gt; <span class="variable">$value</span>) &#123;</span><br><span class="line">    <span class="comment">// foreach body</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-6-try-catch"><a href="#5-6-try-catch" class="headerlink" title="5.6. try, catch"></a>5.6. <code>try</code>, <code>catch</code></h3><p>标准的 <code>try catch</code> 语句如下所示，注意其 括号、空格以及花括号的位置。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// try body</span></span><br><span class="line">&#125; <span class="keyword">catch</span> (FirstExceptionType <span class="variable">$e</span>) &#123;</span><br><span class="line">    <span class="comment">// catch body</span></span><br><span class="line">&#125; <span class="keyword">catch</span> (OtherExceptionType <span class="variable">$e</span>) &#123;</span><br><span class="line">    <span class="comment">// catch body</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>闭包</li>
+</ol>
+<hr>
+<p>闭包声明时，关键词 <code>function</code> 后以及关键词 <code>use</code> 的前后都<strong>必须</strong>要有一个空格。</p>
+<p>开始花括号<strong>必须</strong>写在声明的同一行，结束花括号<strong>必须</strong>紧跟主体结束的下一行。</p>
+<p>参数列表和变量列表的左括号后以及右括号前，<strong>必须不能</strong>有空格。</p>
+<p>参数和变量列表中，逗号前<strong>必须不能</strong>有空格，而逗号后<strong>必须</strong>要有空格。</p>
+<p>闭包中有默认值的参数<strong>必须</strong>放到列表的后面。</p>
+<p>标准的闭包声明语句如下所示，注意其 括号、逗号、空格以及花括号的位置。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$closureWithArgs</span> = <span class="function"><span class="keyword">function</span> (<span class="params"><span class="variable">$arg1</span>, <span class="variable">$arg2</span></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// body</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="variable">$closureWithArgsAndVars</span> = <span class="function"><span class="keyword">function</span> (<span class="params"><span class="variable">$arg1</span>, <span class="variable">$arg2</span></span>) <span class="keyword">use</span> (<span class="params"><span class="variable">$var1</span>, <span class="variable">$var2</span></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// body</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>参数列表以及变量列表<strong>可以</strong>分成多行，这样，包括第一个在内的每个参数或变量都<strong>必须</strong>单独成行，而列表的右括号与闭包的开始花括号<strong>必须</strong>放在同一行。</p>
+<p>以下几个例子，包含了参数和变量列表被分成多行的多情况。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$longArgs_noVars</span> = <span class="function"><span class="keyword">function</span> (<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longArgument</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longerArgument</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$muchLongerArgument</span></span></span></span><br><span class="line"><span class="params"><span class="function"></span>) </span>&#123;</span><br><span class="line">   <span class="comment">// body</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="variable">$noArgs_longVars</span> = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) <span class="keyword">use</span> (<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longVar1</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longerVar2</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$muchLongerVar3</span></span></span></span><br><span class="line"><span class="params"><span class="function"></span>) </span>&#123;</span><br><span class="line">   <span class="comment">// body</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="variable">$longArgs_longVars</span> = <span class="function"><span class="keyword">function</span> (<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longArgument</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longerArgument</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$muchLongerArgument</span></span></span></span><br><span class="line"><span class="params"><span class="function"></span>) <span class="keyword">use</span> (<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longVar1</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longerVar2</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$muchLongerVar3</span></span></span></span><br><span class="line"><span class="params"><span class="function"></span>) </span>&#123;</span><br><span class="line">   <span class="comment">// body</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="variable">$longArgs_shortVars</span> = <span class="function"><span class="keyword">function</span> (<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longArgument</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longerArgument</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$muchLongerArgument</span></span></span></span><br><span class="line"><span class="params"><span class="function"></span>) <span class="keyword">use</span> (<span class="params"><span class="variable">$var1</span></span>) </span>&#123;</span><br><span class="line">   <span class="comment">// body</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="variable">$shortArgs_longVars</span> = <span class="function"><span class="keyword">function</span> (<span class="params"><span class="variable">$arg</span></span>) <span class="keyword">use</span> (<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longVar1</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$longerVar2</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="variable">$muchLongerVar3</span></span></span></span><br><span class="line"><span class="params"><span class="function"></span>) </span>&#123;</span><br><span class="line">   <span class="comment">// body</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>注意，闭包被直接用作函数或方法调用的参数时，以上规则仍然适用。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$foo</span>-&gt;<span class="title function_ invoke__">bar</span>(</span><br><span class="line">    <span class="variable">$arg1</span>,</span><br><span class="line">    function (<span class="variable">$arg2</span>) <span class="keyword">use</span> ($<span class="title">var1</span>) &#123;</span><br><span class="line">        // <span class="title">body</span></span><br><span class="line">    &#125;,</span><br><span class="line">    $<span class="title">arg3</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+<ol start="7">
+<li>总结</li>
+</ol>
+<hr>
+<p>以上规范难免有疏忽，其中包括但不仅限于：</p>
+<ul>
+<li>全局变量和常量的定义</li>
+<li>函数的定义</li>
+<li>操作符和赋值</li>
+<li>行内对齐</li>
+<li>注释和文档描述块</li>
+<li>类名的前缀及后缀</li>
+<li>最佳实践<br>本规范之后的修订与扩展将弥补以上不足。</li>
+</ul>
+<h1 id="PSR-2-补充文档"><a href="#PSR-2-补充文档" class="headerlink" title="PSR-2 补充文档"></a>PSR-2 补充文档</h1><p>&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</p>
+<ol>
+<li>摘要</li>
+</ol>
+<hr>
+<p>本规范希望通过制定一系列规范化PHP代码的规则，以减少在浏览不同作者的代码时，因代码风格的不同而造成不便。</p>
+<p>当多名程序员在多个项目中合作时，就需要一个共同的编码规范，<br>而本文中的风格规范源自于多个不同项目代码风格的共同特性，<br>因此，本规范的价值在于我们都遵循这个编码风格，而不是在于它本身。</p>
+<ol start="2">
+<li>投票</li>
+</ol>
+<hr>
+<ul>
+<li><strong>投票点:</strong> <a target="_blank" rel="noopener" href="https://groups.google.com/d/msg/php-fig/c-QVvnZdMQ0/TdDMdzKFpdIJ">ML</a></li>
+</ul>
+<ol start="3">
+<li>勘误</li>
+</ol>
+<hr>
+<h3 id="3-1-多行参数-09-08-2013"><a href="#3-1-多行参数-09-08-2013" class="headerlink" title="3.1 - 多行参数 (09&#x2F;08&#x2F;2013)"></a>3.1 - 多行参数 (09&#x2F;08&#x2F;2013)</h3><p>使用一个或多个跨行的参数（如数组和匿名函数）并不需要触发 4.6 节中关于参数列表的单行规定，<br>因此，在参数表中的数组和匿名函数是可以单独分列成多行的。</p>
+<p>以下的例子是符合 PSR-2 规范的：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="title function_ invoke__">somefunction</span>(<span class="variable">$foo</span>, <span class="variable">$bar</span>, [</span><br><span class="line">  // ...</span><br><span class="line">], <span class="variable">$baz</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable">$app</span>-&gt;<span class="title function_ invoke__">get</span>(<span class="string">&#x27;/hello/&#123;name&#125;&#x27;</span>, function (<span class="variable">$name</span>) <span class="keyword">use</span> ($<span class="title">app</span>) &#123;</span><br><span class="line">    <span class="title">return</span> &#x27;<span class="title">Hello</span> &#x27;.$<span class="title">app</span>-&gt;<span class="title">escape</span>($<span class="title">name</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-多接口扩展-10-17-2013"><a href="#3-2-多接口扩展-10-17-2013" class="headerlink" title="3.2 - 多接口扩展 (10&#x2F;17&#x2F;2013)"></a>3.2 - 多接口扩展 (10&#x2F;17&#x2F;2013)</h3><p>当需要扩展多个接口时，<code>extends</code> 的相关规范与 4.1 节中 <code>implements</code> 的规范一致。</p>
+<h1 id="PSR-3-日志接口规范"><a href="#PSR-3-日志接口规范" class="headerlink" title="#PSR-3: 日志接口规范"></a>#PSR-3: 日志接口规范</h1><p>本文制定了日志类库的通用接口规范。</p>
+<p>本规范的主要目的，是为了让日志类库以简单通用的方式，通过接收一个 <code>Psr\Log\LoggerInterface</code> 对象，来记录日志信息。<br>框架以及CMS内容管理系统如有需要，<strong>可以</strong>对此接口进行扩展，但需遵循本规范，<br>这才能保证在使用第三方的类库文件时，日志接口仍能正常对接。</p>
+<p>关键词 “必须”(“MUST”)、“一定不可&#x2F;一定不能”(“MUST NOT”)、“需要”(“REQUIRED”)、<br>“将会”(“SHALL”)、“不会”(“SHALL NOT”)、“应该”(“SHOULD”)、“不该”(“SHOULD NOT”)、<br>“推荐”(“RECOMMENDED”)、“可以”(“MAY”)和”可选“(“OPTIONAL”)的详细描述可参见 <a target="_blank" rel="noopener" href="http://www.ietf.org/rfc/rfc2119.txt">RFC 2119</a> 。</p>
+<p>本文中的 <code>实现者</code> 指的是实现了 <code>LoggerInterface</code> 接口的类库或者框架，反过来讲，他们就是 <code>LoggerInterface</code> 的 <code>使用者</code>。</p>
+<ol>
+<li>规范说明</li>
+</ol>
+<hr>
+<h3 id="1-1-基本规范"><a href="#1-1-基本规范" class="headerlink" title="1.1 基本规范"></a>1.1 基本规范</h3><ul>
+<li><code>LoggerInterface</code> 接口对外定义了八个方法，分别用来记录 <a target="_blank" rel="noopener" href="http://tools.ietf.org/html/rfc5424">RFC 5424</a> 中定义的八个等级的日志：debug、 info、 notice、 warning、 error、 critical、 alert 以及 emergency 。</li>
+<li>第九个方法 —— <code>log</code>，其第一个参数为记录的等级。可使用一个预先定义的等级常量作为参数来调用此方法，<strong>必须</strong>与直接调用以上八个方法具有相同的效果。如果传入的等级常量参数没有预先定义，则<strong>必须</strong>抛出 <code>Psr\Log\InvalidArgumentException</code> 类型的异常。在不确定的情况下，使用者<strong>不该</strong>使用未支持的等级常量来调用此方法。</li>
+</ul>
+<h3 id="1-2-记录信息"><a href="#1-2-记录信息" class="headerlink" title="1.2 记录信息"></a>1.2 记录信息</h3><ul>
+<li><p>以上每个方法都接受一个字符串类型或者是有 <code>__toString()</code> 方法的对象作为记录信息参数，这样，实现者就能把它当成字符串来处理，否则实现者<strong>必须</strong>自己把它转换成字符串。</p>
+</li>
+<li><p>记录信息参数<strong>可以</strong>携带占位符，实现者<strong>可以</strong>根据上下文将其它替换成相应的值。<br>其中占位符<strong>必须</strong>与上下文数组中的键名保持一致。<br>占位符的名称<strong>必须</strong>由一个左花括号 <code>&#123;</code> 以及一个右括号 <code>&#125;</code> 包含。但花括号与名称之间<strong>一定不能</strong>有空格符。</p>
+<p>占位符的名称<strong>应该</strong>只由 <code>A-Z</code>、 <code>a-z</code>,<code>0-9</code>、下划线 <code>_</code>、以及英文的句号 <code>.</code>组成，其它字符作为将来占位符规范的保留。</p>
+<p>实现者<strong>可以</strong>通过对占位符采用不同的转义和转换策略，来生成最终的日志。<br>而使用者在不知道上下文的前提下，<strong>不该</strong>提前转义占位符。</p>
+<p>以下是一个占位符使用的例子：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 用上下文信息替换记录信息中的占位符</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">interpolate</span>(<span class="params"><span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 构建一个花括号包含的键名的替换数组</span></span><br><span class="line">    <span class="variable">$replace</span> = <span class="keyword">array</span>();</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="variable">$context</span> <span class="keyword">as</span> <span class="variable">$key</span> =&gt; <span class="variable">$val</span>) &#123;</span><br><span class="line">        <span class="variable">$replace</span>[<span class="string">&#x27;&#123;&#x27;</span> . <span class="variable">$key</span> . <span class="string">&#x27;&#125;&#x27;</span>] = <span class="variable">$val</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 替换记录信息中的占位符，最后返回修改后的记录信息。</span></span><br><span class="line">    <span class="keyword">return</span> <span class="title function_ invoke__">strtr</span>(<span class="variable">$message</span>, <span class="variable">$replace</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 含有带花括号占位符的记录信息。</span></span><br><span class="line"><span class="variable">$message</span> = <span class="string">&quot;User &#123;username&#125; created&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 带有替换信息的上下文数组，键名为占位符名称，键值为替换值。</span></span><br><span class="line"><span class="variable">$context</span> = <span class="keyword">array</span>(<span class="string">&#x27;username&#x27;</span> =&gt; <span class="string">&#x27;bolivar&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出 &quot;Username bolivar created&quot;</span></span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">interpolate</span>(<span class="variable">$message</span>, <span class="variable">$context</span>);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="1-3-上下文"><a href="#1-3-上下文" class="headerlink" title="1.3 上下文"></a>1.3 上下文</h3><ul>
+<li>每个记录函数都接受一个上下文数组参数，用来装载字符串类型无法表示的信息。它<strong>可以</strong>装载任何信息，所以实现者<strong>必须</strong>确保能正确处理其装载的信息，对于其装载的数据，<strong>一定不能</strong> 抛出异常，或产生PHP出错、警告或提醒信息（error、warning、notice）。</li>
+<li>如需通过上下文参数传入了一个 <code>Exception</code> 对象， <strong>必须</strong>以 <code>&#39;exception&#39;</code> 作为键名。<br>记录异常信息是很普遍的，所以如果它能够在记录类库的底层实现，就能够让实现者从异常信息中抽丝剥茧。<br>当然，实现者在使用它时，<strong>必须</strong>确保键名为 <code>&#39;exception&#39;</code> 的键值是否真的是一个 <code>Exception</code>，毕竟它<strong>可以</strong>装载任何信息。</li>
+</ul>
+<h3 id="1-4-助手类和接口"><a href="#1-4-助手类和接口" class="headerlink" title="1.4 助手类和接口"></a>1.4 助手类和接口</h3><ul>
+<li><code>Psr\Log\AbstractLogger</code> 类使得只需继承它和实现其中的 <code>log</code> 方法，就能够很轻易地实现 <code>LoggerInterface</code> 接口，而另外八个方法就能够把记录信息和上下文信息传给它。</li>
+<li>同样地，使用  <code>Psr\Log\LoggerTrait</code>  也只需实现其中的 <code>log</code> 方法。不过，需要特别注意的是，在traits可复用代码块还不能实现接口前，还需要  <code>implement LoggerInterface</code>。</li>
+<li>在没有可用的日志记录器时， <code>Psr\Log\NullLogger</code> 接口<strong>可以</strong>为使用者提供一个备用的日志“黑洞”。不过，当上下文的构建非常消耗资源时，带条件检查的日志记录或许是更好的办法。</li>
+<li><code>Psr\Log\LoggerAwareInterface</code> 接口仅包括一个<br><code>setLogger(LoggerInterface $logger)</code> 方法，框架可以使用它实现自动连接任意的日志记录实例。</li>
+<li><code>Psr\Log\LoggerAwareTrait</code> trait可复用代码块可以在任何的类里面使用，只需通过它提供的 <code>$this-&gt;logger</code>，就可以轻松地实现等同的接口。</li>
+<li><code>Psr\Log\LogLevel</code> 类装载了八个记录等级常量。</li>
+</ul>
+<ol start="2">
+<li>包</li>
+</ol>
+<hr>
+<p>上述的接口、类和相关的异常类，以及一系列的实现检测文件，都包含在 <a target="_blank" rel="noopener" href="https://packagist.org/packages/psr/log">psr&#x2F;log</a> 文件包中。</p>
+<ol start="3">
+<li><code>Psr\Log\LoggerInterface</code></li>
+</ol>
+<hr>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Psr</span>\<span class="title class_">Log</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 日志记录实例</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 日志信息变量 —— message， **必须**是一个字符串或是实现了  __toString() 方法的对象。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 日志信息变量中**可以**包含格式如 “&#123;foo&#125;” (代表foo) 的占位符，</span></span><br><span class="line"><span class="comment"> * 它将会由上下文数组中键名为 &quot;foo&quot; 的键值替代。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 上下文数组可以携带任意的数据，唯一的限制是，当它携带的是一个 exception 对象时，它的键名 必须 是 &quot;exception&quot;。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 详情可参阅： https://github.com/PizzaLiu/PHP-FIG/blob/master/PSR-3-logger-interface-cn.md</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">LoggerInterface</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 系统不可用</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> string $message</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> array $context</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">emergency</span>(<span class="params"><span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * **必须**立刻采取行动</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 例如：在整个网站都垮掉了、数据库不可用了或者其他的情况下，**应该**发送一条警报短信把你叫醒。</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> string $message</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> array $context</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">alert</span>(<span class="params"><span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 紧急情况</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 例如：程序组件不可用或者出现非预期的异常。</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> string $message</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> array $context</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">critical</span>(<span class="params"><span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 运行时出现的错误，不需要立刻采取行动，但必须记录下来以备检测。</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> string $message</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> array $context</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">error</span>(<span class="params"><span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 出现非错误性的异常。</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 例如：使用了被弃用的API、错误地使用了API或者非预想的不必要错误。</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> string $message</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> array $context</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">warning</span>(<span class="params"><span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 一般性重要的事件。</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> string $message</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> array $context</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">notice</span>(<span class="params"><span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 重要事件</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 例如：用户登录和SQL记录。</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> string $message</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> array $context</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">info</span>(<span class="params"><span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * debug 详情</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> string $message</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> array $context</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">debug</span>(<span class="params"><span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 任意等级的日志记录</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> mixed $level</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> string $message</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> array $context</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">log</span>(<span class="params"><span class="variable">$level</span>, <span class="variable">$message</span>, <span class="keyword">array</span> <span class="variable">$context</span> = <span class="keyword">array</span>(<span class="params"></span>)</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li><code>Psr\Log\LoggerAwareInterface</code></li>
+</ol>
+<hr>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Psr</span>\<span class="title class_">Log</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * logger-aware 定义实例</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">LoggerAwareInterface</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 设置一个日志记录实例</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> LoggerInterface $logger</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">setLogger</span>(<span class="params">LoggerInterface <span class="variable">$logger</span></span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li><code>Psr\Log\LogLevel</code></li>
+</ol>
+<hr>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> <span class="title class_">Psr</span>\<span class="title class_">Log</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 日志等级常量定义</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LogLevel</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">EMERGENCY</span> = <span class="string">&#x27;emergency&#x27;</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">ALERT</span>     = <span class="string">&#x27;alert&#x27;</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">CRITICAL</span>  = <span class="string">&#x27;critical&#x27;</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">ERROR</span>     = <span class="string">&#x27;error&#x27;</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">WARNING</span>   = <span class="string">&#x27;warning&#x27;</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">NOTICE</span>    = <span class="string">&#x27;notice&#x27;</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">INFO</span>      = <span class="string">&#x27;info&#x27;</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="variable constant_">DEBUG</span>     = <span class="string">&#x27;debug&#x27;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<hr>
+<h1 id="PSR-4-Autoloader"><a href="#PSR-4-Autoloader" class="headerlink" title="PSR-4:Autoloader"></a>PSR-4:Autoloader</h1><p>关键词 “必须”(“MUST”)、“一定不可&#x2F;一定不能”(“MUST NOT”)、“需要”(“REQUIRED”)、<br>“将会”(“SHALL”)、“不会”(“SHALL NOT”)、“应该”(“SHOULD”)、“不该”(“SHOULD NOT”)、<br>“推荐”(“RECOMMENDED”)、“可以”(“MAY”)和”可选“(“OPTIONAL”)的详细描述可参见 [RFC 2119][<a target="_blank" rel="noopener" href="http://tools.ietf.org/html/rfc2119]">http://tools.ietf.org/html/rfc2119]</a> 。</p>
+<h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p>本 PSR 是关于由文件路径 <a target="_blank" rel="noopener" href="http://php.net/autoload">自动载入</a> 对应类的相关规范，<br>本规范是可互操作的，可以作为任一自动载入规范的补充，其中包括 <a target="_blank" rel="noopener" href="https://github.com/PizzaLiu/PHP-FIG/blob/master/PSR-0-cn.md">PSR-0</a>，此外，<br>本 PSR 还包括自动载入的类对应的文件存放路径规范。</p>
+<h2 id="2-详细说明"><a href="#2-详细说明" class="headerlink" title="2. 详细说明"></a>2. 详细说明</h2><ol>
+<li><p>此处的“类”泛指所有的class类、接口、traits可复用代码块以及其它类似结构。</p>
+</li>
+<li><p>一个完整的类名需具有以下结构:</p>
+<pre><code> \&lt;命名空间&gt;(\&lt;子命名空间&gt;)*\&lt;类名&gt;
+</code></pre>
+<ol>
+<li>完整的类名<strong>必须</strong>要有一个顶级命名空间，被称为 “vendor namespace”；</li>
+<li>完整的类名<strong>可以</strong>有一个或多个子命名空间；</li>
+<li>完整的类名<strong>必须</strong>有一个最终的类名；</li>
+<li>完整的类名中任意一部分中的下划线都是没有特殊含义的；</li>
+<li>完整的类名<strong>可以</strong>由任意大小写字母组成；</li>
+<li>所有类名都<strong>必须</strong>是大小写敏感的。</li>
+</ol>
+</li>
+<li><p>当根据完整的类名载入相应的文件……</p>
+<ol>
+<li>完整的类名中，去掉最前面的命名空间分隔符，前面连续的一个或多个命名空间和子命名空间，作为“命名空间前缀”，其必须与至少一个“文件基目录”相对应；</li>
+<li>紧接命名空间前缀后的子命名空间<strong>必须</strong>与相应的”文件基目录“相匹配，其中的命名空间分隔符将作为目录分隔符。</li>
+<li>末尾的类名<strong>必须</strong>与对应的以 <code>.php</code> 为后缀的文件同名。</li>
+<li>自动加载器（autoloader）的实现<strong>一定不能</strong>抛出异常、<strong>一定不能</strong>触发任一级别的错误信息以及<strong>不应该</strong>有返回值。</li>
+</ol>
+</li>
+</ol>
+<h2 id="3-例子"><a href="#3-例子" class="headerlink" title="3. 例子"></a>3. 例子</h2><p>下表展示了符合规范完整类名、命名空间前缀和文件基目录所对应的文件路径。</p>
+<table>
+<thead>
+<tr>
+<th>完整类名</th>
+<th>命名空间前缀</th>
+<th>文件基目录</th>
+<th>文件路径</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>\Acme\Log\Writer\File_Writer</td>
+<td>Acme\Log\Writer</td>
+<td>.&#x2F;acme-log-writer&#x2F;lib&#x2F;</td>
+<td>.&#x2F;acme-log-writer&#x2F;lib&#x2F;File_Writer.php</td>
+</tr>
+<tr>
+<td>\Aura\Web\Response\Status</td>
+<td>Aura\Web</td>
+<td>&#x2F;path&#x2F;to&#x2F;aura-web&#x2F;src&#x2F;</td>
+<td>&#x2F;path&#x2F;to&#x2F;aura-web&#x2F;src&#x2F;Response&#x2F;Status.php</td>
+</tr>
+<tr>
+<td>\Symfony\Core\Request</td>
+<td>Symfony\Core</td>
+<td>.&#x2F;vendor&#x2F;Symfony&#x2F;Core&#x2F;</td>
+<td>.&#x2F;vendor&#x2F;Symfony&#x2F;Core&#x2F;Request.php</td>
+</tr>
+<tr>
+<td>\Zend\Acl</td>
+<td>Zend</td>
+<td>&#x2F;usr&#x2F;includes&#x2F;Zend&#x2F;</td>
+<td>&#x2F;usr&#x2F;includes&#x2F;Zend&#x2F;Acl.php</td>
+</tr>
+</tbody></table>
+<p>关于本规范的实现，可参阅 <a target="_blank" rel="noopener" href="https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader-examples.md">相关实例</a><br>注意：实例并<strong>不</strong>属于规范的一部分，且随时<strong>会</strong>有所变动。</p>
+<hr>
+<h1 id="PSR-6-Caching-Interface"><a href="#PSR-6-Caching-Interface" class="headerlink" title="PSR-6: Caching Interface"></a>PSR-6: Caching Interface</h1><p><a target="_blank" rel="noopener" href="https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-6-cache.md">PSR-6-cache</a></p>
+<h1 id="PSR-7-HTTP-message-interfaces"><a href="#PSR-7-HTTP-message-interfaces" class="headerlink" title="PSR-7: HTTP message interfaces"></a>PSR-7: HTTP message interfaces</h1><p><a target="_blank" rel="noopener" href="https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-7-http-message.md">PSR-7-http-message</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/PSR/" rel="tag"># PSR</a>
+              <a href="/tags/%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83/" rel="tag"># 编码规范</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/04/16/%E4%B8%93%E6%B3%A8%E4%B8%93%E4%B8%9A%E7%9A%84%E5%B7%A5%E4%BD%9C.html" rel="prev" title="专注专业的工作">
+      <i class="fa fa-chevron-left"></i> 专注专业的工作
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="next" title="关于本站，关于我">
+      关于本站，关于我 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PSR-0-%E8%87%AA%E5%8A%A8%E5%8A%A0%E8%BD%BD%E8%A7%84%E8%8C%83"><span class="nav-number">1.</span> <span class="nav-text">PSR-0:自动加载规范</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PSR-1-%E5%9F%BA%E6%9C%AC%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83"><span class="nav-number">2.</span> <span class="nav-text">PSR-1:基本代码规范</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-PHP%E6%A0%87%E7%AD%BE"><span class="nav-number">2.0.1.</span> <span class="nav-text">2.1. PHP标签</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81"><span class="nav-number">2.0.2.</span> <span class="nav-text">2.2. 字符编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E4%BB%8E%E5%B1%9E%E6%95%88%E5%BA%94%EF%BC%88%E5%89%AF%E4%BD%9C%E7%94%A8%EF%BC%89"><span class="nav-number">2.0.3.</span> <span class="nav-text">2.3. 从属效应（副作用）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%B8%B8%E9%87%8F"><span class="nav-number">2.0.4.</span> <span class="nav-text">4.1. 常量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%B1%9E%E6%80%A7"><span class="nav-number">2.0.5.</span> <span class="nav-text">4.2. 属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%96%B9%E6%B3%95"><span class="nav-number">2.0.6.</span> <span class="nav-text">4.3. 方法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PSR-2-%E4%BB%A3%E7%A0%81%E9%A3%8E%E6%A0%BC%E8%A7%84%E8%8C%83"><span class="nav-number">3.</span> <span class="nav-text">PSR-2:代码风格规范</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E4%BE%8B%E5%AD%90"><span class="nav-number">3.0.1.</span> <span class="nav-text">1.1. 例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%9F%BA%E6%9C%AC%E7%BC%96%E7%A0%81%E5%87%86%E5%88%99"><span class="nav-number">3.0.2.</span> <span class="nav-text">2.1 基本编码准则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E6%96%87%E4%BB%B6"><span class="nav-number">3.0.3.</span> <span class="nav-text">2.2 文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E8%A1%8C"><span class="nav-number">3.0.4.</span> <span class="nav-text">2.3. 行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E7%BC%A9%E8%BF%9B"><span class="nav-number">3.0.5.</span> <span class="nav-text">2.4. 缩进</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-%E5%85%B3%E9%94%AE%E5%AD%97-%E4%BB%A5%E5%8F%8A-True-False-Null"><span class="nav-number">3.0.6.</span> <span class="nav-text">2.5. 关键字 以及 True&#x2F;False&#x2F;Null</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E6%89%A9%E5%B1%95%E4%B8%8E%E7%BB%A7%E6%89%BF"><span class="nav-number">3.0.7.</span> <span class="nav-text">4.1. 扩展与继承</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%B1%9E%E6%80%A7-1"><span class="nav-number">3.0.8.</span> <span class="nav-text">4.2. 属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%96%B9%E6%B3%95-1"><span class="nav-number">3.0.9.</span> <span class="nav-text">4.3. 方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-abstract-%E3%80%81-final-%E3%80%81-%E4%BB%A5%E5%8F%8A-static"><span class="nav-number">3.0.10.</span> <span class="nav-text">4.5. abstract 、 final 、 以及 static</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-%E6%96%B9%E6%B3%95%E5%8F%8A%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8"><span class="nav-number">3.0.11.</span> <span class="nav-text">4.6. 方法及函数调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-if-%E3%80%81-elseif-%E5%92%8C-else"><span class="nav-number">3.0.12.</span> <span class="nav-text">5.1. if 、 elseif 和 else</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-switch-%E5%92%8C-case"><span class="nav-number">3.0.13.</span> <span class="nav-text">5.2. switch 和 case</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-while-%E5%92%8C-do-while"><span class="nav-number">3.0.14.</span> <span class="nav-text">5.3. while 和 do while</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-for"><span class="nav-number">3.0.15.</span> <span class="nav-text">5.4. for</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-foreach"><span class="nav-number">3.0.16.</span> <span class="nav-text">5.5. foreach</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-try-catch"><span class="nav-number">3.0.17.</span> <span class="nav-text">5.6. try, catch</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PSR-2-%E8%A1%A5%E5%85%85%E6%96%87%E6%A1%A3"><span class="nav-number">4.</span> <span class="nav-text">PSR-2 补充文档</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E5%A4%9A%E8%A1%8C%E5%8F%82%E6%95%B0-09-08-2013"><span class="nav-number">4.0.1.</span> <span class="nav-text">3.1 - 多行参数 (09&#x2F;08&#x2F;2013)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E5%A4%9A%E6%8E%A5%E5%8F%A3%E6%89%A9%E5%B1%95-10-17-2013"><span class="nav-number">4.0.2.</span> <span class="nav-text">3.2 - 多接口扩展 (10&#x2F;17&#x2F;2013)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PSR-3-%E6%97%A5%E5%BF%97%E6%8E%A5%E5%8F%A3%E8%A7%84%E8%8C%83"><span class="nav-number">5.</span> <span class="nav-text">#PSR-3: 日志接口规范</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%9F%BA%E6%9C%AC%E8%A7%84%E8%8C%83"><span class="nav-number">5.0.1.</span> <span class="nav-text">1.1 基本规范</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E8%AE%B0%E5%BD%95%E4%BF%A1%E6%81%AF"><span class="nav-number">5.0.2.</span> <span class="nav-text">1.2 记录信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-number">5.0.3.</span> <span class="nav-text">1.3 上下文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E5%8A%A9%E6%89%8B%E7%B1%BB%E5%92%8C%E6%8E%A5%E5%8F%A3"><span class="nav-number">5.0.4.</span> <span class="nav-text">1.4 助手类和接口</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PSR-4-Autoloader"><span class="nav-number">6.</span> <span class="nav-text">PSR-4:Autoloader</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-number">6.1.</span> <span class="nav-text">1. 概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E8%AF%A6%E7%BB%86%E8%AF%B4%E6%98%8E"><span class="nav-number">6.2.</span> <span class="nav-text">2. 详细说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E4%BE%8B%E5%AD%90"><span class="nav-number">6.3.</span> <span class="nav-text">3. 例子</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PSR-6-Caching-Interface"><span class="nav-number">7.</span> <span class="nav-text">PSR-6: Caching Interface</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PSR-7-HTTP-message-interfaces"><span class="nav-number">8.</span> <span class="nav-text">PSR-7: HTTP message interfaces</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="虢國技酱"
+      src="/images/wangxb.png">
+  <p class="site-author-name" itemprop="name">虢國技酱</p>
+  <div class="site-description" itemprop="description">静心·积累·坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wxb" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wxb" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wxb0328@icloud.com" title="E-Mail → mailto:wxb0328@icloud.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ramboxbwang" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ramboxbwang" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/wangxb" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;wangxb" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">虢國技酱</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a0ce361efbb68e2c2be6',
+      clientSecret: '272365b7568ffbb484cf975261be83fe79a02061',
+      repo        : 'wxb.github.io',
+      owner       : 'wxb',
+      admin       : ['wxb'],
+      id          : 'c74df63575fed9103788a9df40d50a7c',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

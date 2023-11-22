@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+<!-- Referrer Policy调整致不蒜子单页面统计出错:https://senorui.top/posts/c33f.html -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wxb.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="LNMP一键开发环境: LNMP-Docker 基于Docker容器技术，配置一个可分发、快速、简单、标准、统一的LNMP开发环境。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LNMP一键开发环境">
+<meta property="og:url" content="http://wxb.github.io/2017/01/03/LNMP%E4%B8%80%E9%94%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83.html">
+<meta property="og:site_name" content="虢國書館">
+<meta property="og:description" content="LNMP一键开发环境: LNMP-Docker 基于Docker容器技术，配置一个可分发、快速、简单、标准、统一的LNMP开发环境。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://wxb.github.io/images/docker/1.jpg">
+<meta property="og:image" content="http://wxb.github.io/images/docker/02.jpg">
+<meta property="article:published_time" content="2017-01-03T14:15:08.000Z">
+<meta property="article:modified_time" content="2023-11-22T02:35:29.999Z">
+<meta property="article:author" content="虢國技酱">
+<meta property="article:tag" content="docker">
+<meta property="article:tag" content="LNMP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://wxb.github.io/images/docker/1.jpg">
+
+<link rel="canonical" href="http://wxb.github.io/2017/01/03/LNMP%E4%B8%80%E9%94%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>LNMP一键开发环境 | 虢國書館</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">虢國書館</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">静心·积累·坚持</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/2016/08/30/%E5%85%B3%E4%BA%8E%E6%88%91.html" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://wxb.github.io/2017/01/03/LNMP%E4%B8%80%E9%94%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/wangxb.png">
+      <meta itemprop="name" content="虢國技酱">
+      <meta itemprop="description" content="静心·积累·坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="虢國書館">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LNMP一键开发环境
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-01-03 22:15:08" itemprop="dateCreated datePublished" datetime="2017-01-03T22:15:08+08:00">2017-01-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-22 10:35:29" itemprop="dateModified" datetime="2023-11-22T10:35:29+08:00">2023-11-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index"><span itemprop="name">docker</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="LNMP一键开发环境-LNMP-Docker"><a href="#LNMP一键开发环境-LNMP-Docker" class="headerlink" title="LNMP一键开发环境: LNMP-Docker"></a>LNMP一键开发环境: LNMP-Docker</h1><p><img src="/images/docker/1.jpg"></p>
+<p>基于Docker容器技术，配置一个可分发、快速、简单、标准、统一的LNMP开发环境。</p>
+<span id="more"></span>
+
+<h1 id="长久以来的痛点"><a href="#长久以来的痛点" class="headerlink" title="长久以来的痛点"></a>长久以来的痛点</h1><p>在我平时的开发中,经常会配置开发环境,对于一个开发人员来说快速流畅的配置好开发环境是必备技能,也许你越是熟悉或者精通,越能体会到配置环境本身其实是一个体力活,重复的劳动毫无意义。</p>
+<p>每次无论是换工作还是给新人部署开发环境都是一件费事，费时和让人烦躁的事情，各种莫名奇妙的东西，太浪费时间了。有时候同样的某个扩展可能自己在安装的时候费了九牛二虎之力已经完成，但是当团队中有新的环境配置部署时你不得不在头疼一次,更危险的是当你的团队中的开发人员在某个版本开发过程中需要一些新的扩展或者配置时,其他的开发者就还得将相同的工作重复一遍,并且测试环境和线上环境也得小心翼翼的再来一次。</p>
+<p>那么如何才能做到环境的<strong>分发</strong>, 就是一次配置到处运行。曾是我将LNMP的开发环境以<strong>绿色</strong>安装的形式保存来尝试解决这种重复的体力劳动,<br>但是效果似乎还是不那么理想。直到我了解到<strong>docker</strong></p>
+<h1 id="docker"><a href="#docker" class="headerlink" title="docker"></a>docker</h1><p>第一次知道docker,实在2016年的3月,当时看到docker的说明简直就是如沐春风啊! 简单说明一下docker-一种容器技术(虚拟化技术),有点类似与沙箱<br>的感觉。我们的应用不在运行在我们的系统上,而是在系统之上虚拟出来一套环境也就是容器,这个容器和我们的应用是相辅相成的。而容器本身是跨平台、<br>易分发、标准化、且很安全。</p>
+<p>其实docker的logo就很有代表性:一直鲸鱼载着很多集装箱。集装箱在货运领域的革新是很明显的:制定了标准,统一了标准;走到世界的任何一个港口集装箱<br>都是这个尺寸,至于里面是装了什么东西,装了什么形状都不用运输的人员操心。所以,docker通过logo就在说明docker的特点。</p>
+<p>我也只是docker使用的一个新手,关于docker相关的中文资料目前相对较少,并且docker也属于新技术,很多英文资料因为自己英语基础啃起来很费劲。<br>很多东西还没有搞清楚,这里简单的说一下自己理解的docker的特点:</p>
+<ul>
+<li>标准化<br>  统一的标准的应用运行容器, 当对一个应用的docker容器配置建立起且运行起以后, 这套容器就和运行浑然一体了,运行环境在哪里都是统一的,标准的。</li>
+<li>易分发<br>  无论在那个机器上,我们只需要将docker安装好,执行一条命令我们的环境和应用就像copy了一份一样完美运行! 不用再为环境配置而烦心。</li>
+<li>简单快速<br>  目前无论国内还是国外基于容器技术的容器云服务公司越来越多,包括阿里云也在今年推出了容器服务。原因就是容器在现在企业应用要求快速迭代、快速<br>  发布时可以做到一键发布上线。做到真正意义上的持续集成（CI）和持续发布（CD）!</li>
+<li>跨平台<br>  容器是在系统之上虚拟化出来的系统, 具有很强的跨平台性,docker目前已经支持Linux、Windows、Mac等系统</li>
+<li>安全性<br>  容器是在真实系统上采用虚拟化技术虚拟出来的,所以和真实系统相对隔离,可以保证真实系统的安全</li>
+</ul>
+<h1 id="关于LNMP-Docker使用"><a href="#关于LNMP-Docker使用" class="headerlink" title="关于LNMP-Docker使用"></a>关于LNMP-Docker使用</h1><h2 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h2><p>LNMP-Docker 并不是我的创造，而只是因为一直频繁的被nginx+php的环境配置所困扰，刚好有遇到了docker，心中窃喜！终于可以将某个web应用环境以分发的形式共享给团队开发人员。并且这个环境可以保持<code>开发</code>-<code>测试</code>-<code>生产</code> 环境的一致；降低运维成本；做的CI，CD（持续集成和持续发布）</p>
+<p>LNMP-Docker 主要都是基于 <a target="_blank" rel="noopener" href="https://github.com/bitnami">bitnami</a> 所释放&#x2F;分享出来的相关镜像：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/bitnami/bitnami-docker-nginx">bitnami-docker-nginx</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/bitnami/bitnami-docker-php-fpm">bitnami-docker-php-fpm</a></li>
+<li>daocloud&#x2F;wangxb&#x2F;mysql - docker pull daocloud.io&#x2F;wangxb&#x2F;mysql:5.6<br>更多扩展可根据项目需要自行扩展</li>
+</ul>
+<h2 id="规范"><a href="#规范" class="headerlink" title="规范"></a>规范</h2><p>LNMP-Docker 是使用 <code>docker-compose</code> 应用编排进行的，在使用执行请确认你的系统中已经安装了：<code>docker</code> 和 <code>docker-compose</code>  </p>
+<ul>
+<li>克隆 <code>$ git clone git@github.com:wxb/Docker-LNMP.git</code></li>
+<li>修改名字 <code>$ mv Docker-LNMP &#123;项目名&#125; &amp;&amp; cd &#123;项目名&#125;&#125;</code></li>
+<li>拉取你的项目放到workspace目录下并改名app <code>$ git clone git@github.com:wxb/xxx.git &amp;&amp; mv xxx app</code></li>
+<li>配置虚拟主机 <code>$ cp vhost-example.conf vhost.conf</code> 然后修改<code>vhost.conf</code>文件</li>
+<li>在需要对<code>php</code>或者<code>php-fpm</code>进行个性配置时，将<code>php-fpm/conf/</code>目录下相应<code>*.example</code>复制一份改名为：<code>php-fpm/conf/php.ini</code>和<code>php-fpm/conf/php-fpm.conf</code>进行个性配置</li>
+<li>启动环境 <code>docker-compose up -d</code></li>
+</ul>
+<p>完成以后目录类似这样：<br><img src="/images/docker/02.jpg"></p>
+<h2 id="下载LNMP-Docker"><a href="#下载LNMP-Docker" class="headerlink" title="下载LNMP-Docker"></a>下载LNMP-Docker</h2><p>在github上<a target="_blank" rel="noopener" href="https://github.com/wxb/Docker-LNMP">LNMP-Docker</a>项目中就可以下载克隆了，如果有什么问题也可直接提Issue</p>
+<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>LNMP-Docker 只是我在了解了docker之后进行的简单尝试，使用过程中还可能会出现很多的问题，后面我会逐步完善；不过现在我已经对docker技术充满了想法，只是相关知识的缺乏还不能更好的利用；待之后努力学习，争取用号docker，提升开发-发布环境一致性。</p>
+<p>同时，也尝试配合使用<a target="_blank" rel="noopener" href="https://dashboard.daocloud.io/">daocloud.com</a> 对项目进行docker形式的持续集成（CI）和持续发布（CD）。后期如果自己使用的这套构建流完善之后，我会写一篇进行详细介绍，欢迎大家使用</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/docker/" rel="tag"># docker</a>
+              <a href="/tags/LNMP/" rel="tag"># LNMP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/12/20/TLDR-%E7%A4%BE%E5%8C%BA%E9%A9%B1%E5%8A%A8%E8%B6%85%E7%AE%80%E6%B4%81Man%E5%B8%AE%E5%8A%A9%E5%B7%A5%E5%85%B7.html" rel="prev" title="TLDR-社区驱动超简洁Man帮助工具">
+      <i class="fa fa-chevron-left"></i> TLDR-社区驱动超简洁Man帮助工具
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/02/08/%E5%8D%9A%E5%AE%A2%E5%9B%AD%E5%8A%A0%E5%AF%86%E7%99%BB%E5%BD%95-jsencrypt.html" rel="next" title="博客园加密登录--jsencrypt">
+      博客园加密登录--jsencrypt <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#LNMP%E4%B8%80%E9%94%AE%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83-LNMP-Docker"><span class="nav-number">1.</span> <span class="nav-text">LNMP一键开发环境: LNMP-Docker</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%95%BF%E4%B9%85%E4%BB%A5%E6%9D%A5%E7%9A%84%E7%97%9B%E7%82%B9"><span class="nav-number">2.</span> <span class="nav-text">长久以来的痛点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#docker"><span class="nav-number">3.</span> <span class="nav-text">docker</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B3%E4%BA%8ELNMP-Docker%E4%BD%BF%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">关于LNMP-Docker使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96"><span class="nav-number">4.1.</span> <span class="nav-text">依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%84%E8%8C%83"><span class="nav-number">4.2.</span> <span class="nav-text">规范</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BDLNMP-Docker"><span class="nav-number">4.3.</span> <span class="nav-text">下载LNMP-Docker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%B4%E6%98%8E"><span class="nav-number">4.4.</span> <span class="nav-text">说明</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="虢國技酱"
+      src="/images/wangxb.png">
+  <p class="site-author-name" itemprop="name">虢國技酱</p>
+  <div class="site-description" itemprop="description">静心·积累·坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories">
+          
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags">
+          
+        <span class="site-state-item-count">128</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/wxb" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;wxb" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:wxb0328@icloud.com" title="E-Mail → mailto:wxb0328@icloud.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ramboxbwang" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ramboxbwang" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/wangxb" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;wangxb" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">虢國技酱</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'a0ce361efbb68e2c2be6',
+      clientSecret: '272365b7568ffbb484cf975261be83fe79a02061',
+      repo        : 'wxb.github.io',
+      owner       : 'wxb',
+      admin       : ['wxb'],
+      id          : '0c82c6b05d10844fc65093cbea1b5163',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
