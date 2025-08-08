@@ -37,7 +37,6 @@
 静心·积累·坚持
 
 ## 联系我
-**坐标：**`鹅厂`   
 **E-mail:** `wxb0328@icoud.com`    
 **GitHub:** `github.com/wxb`     
 
